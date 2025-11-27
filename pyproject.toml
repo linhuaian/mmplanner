@@ -1,0 +1,32 @@
+[project]
+name = "mmplanner"
+version = "0.1.0"
+description = "Multimodal instruction planner with text and image generation"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "openai>=0.27.0",
+    "requests>=2.31.0",
+    "Pillow>=10.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.black]
+line-length = 100
+target-version = ['py38']
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "I", "N", "W"]
+ignore = []
+
