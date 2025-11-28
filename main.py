@@ -8,7 +8,7 @@ import random
 if __name__ == "__main__":
     k = 2
 
-    ip = InstructionPlanner("56d5b8ebf4d5ec1fd1731af1cfa971be9cf711c0a0a366b01b42971937e6bf69")
+    ip = InstructionPlanner("xxx")
     plan = ip.generate_text_plan("How to cook a fried egg?")
 
     sd = StableDiffusionImageGenerator() 
