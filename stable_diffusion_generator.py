@@ -15,7 +15,6 @@ class StableDiffusionImageGenerator:
         else:
             torch_dtype = torch.float32
             device = "cpu"
-        MY_TOKEN = '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'
 
         # pipe = DiffusionPipeline.from_pretrained("./Qwen-Image", torch_dtype=torch_dtype, verify_ssl=False)
         self.pipe = StableDiffusionPipeline.from_pretrained("CompVis/stable-diffusion-v1-4", dtype=torch_dtype).to(device)
