@@ -16,7 +16,6 @@ class StableDiffusionImageGenerator:
             torch_dtype = torch.float32
             device = "cpu"
 
-        # pipe = DiffusionPipeline.from_pretrained("./Qwen-Image", torch_dtype=torch_dtype, verify_ssl=False)
         self.pipe = StableDiffusionPipeline.from_pretrained("CompVis/stable-diffusion-v1-4", dtype=torch_dtype).to(device)
 
     def generate_image(self, prompt, negative_prompt = "", width=512, height=512):
@@ -27,7 +26,7 @@ class StableDiffusionImageGenerator:
             height=height,
             num_inference_steps=50,
             true_cfg_scale=4.0,
-            generator=torch.Generator(device="cuda").manual_seed(42)
+            generator=torch.Generator(device="cuda")
         ).images[0]
         # image.save("example.png")
         return image 

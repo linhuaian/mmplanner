@@ -4,11 +4,18 @@ from step_image_selector import StepImageSelector
 from PIL import Image
 import random 
 
+from dotenv import load_dotenv
+import os
+load_dotenv()
+OPENAI_TOKEN = os.getenv("OPENAI_TOKEN")
+
+print("OPENAI_TOKEN =", OPENAI_TOKEN)
+
 
 if __name__ == "__main__":
     k = 2
 
-    ip = InstructionPlanner("xxx")
+    ip = InstructionPlanner(OPENAI_TOKEN)
     plan = ip.generate_text_plan("How to cook a fried egg?")
 
     sd = StableDiffusionImageGenerator() 
