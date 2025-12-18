@@ -1,13 +1,21 @@
 from instruction_planner import InstructionPlanner
 from stable_diffusion_generator import StableDiffusionImageGenerator
 from step_image_selector import StepImageSelector
+from PIL import Image
 import random 
+
+from dotenv import load_dotenv
+import os
+load_dotenv()
+OPENAI_TOKEN = os.getenv("OPENAI_TOKEN")
+
+print("OPENAI_TOKEN =", OPENAI_TOKEN)
 
 
 if __name__ == "__main__":
     k = 2
 
-    ip = InstructionPlanner("56d5b8ebf4d5ec1fd1731af1cfa971be9cf711c0a0a366b01b42971937e6bf69")
+    ip = InstructionPlanner(OPENAI_TOKEN)
     plan = ip.generate_text_plan("How to cook a fried egg?")
 
     sd = StableDiffusionImageGenerator() 
@@ -17,18 +25,18 @@ if __name__ == "__main__":
     prev_img = None 
     selected_img = []
 
-    for p in plan: 
+    for i, p in enumerate(plan): 
         images = []
         print(f"Generating image for step: {p}")
         for _ in range(k):
-            image = sd.generate_image(p) 
+            image = sd.generate_image(p).convert('RGB') 
             images.append(image)
         if prev_img == None: 
             # for first image generation 
             selected = random.choice(images)
             selected_img.append(selected)
         else: 
-            selected = ss.select_best_image(prev_img, images)
+            selected = ss.select_best_image(prev_img, images, step=i)
             selected_img.append(selected)
         prev_img = selected
 

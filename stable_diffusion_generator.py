@@ -28,7 +28,7 @@ class StableDiffusionImageGenerator:
             height=height,
             num_inference_steps=50,
             true_cfg_scale=4.0,
-            generator=torch.Generator(device="cuda").manual_seed(42)
+            generator=torch.Generator(device="cuda")
         ).images[0]
         # image.save("example.png")
         return image 
@@ -36,4 +36,5 @@ class StableDiffusionImageGenerator:
 if __name__ == "__main__":
     print("Generating...")
     sd = StableDiffusionImageGenerator() 
-    sd.generate_image("generate a image of a dog with its owner")
+    image = sd.generate_image("generate a image of a dog with its owner")
+    image.save("example_image.png")
