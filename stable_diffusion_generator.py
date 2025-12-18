@@ -1,10 +1,10 @@
 import os
 os.environ["HF_HUB_DISABLE_TLS_VERIFY"] = "1"
 
-from diffusers import StableDiffusionPipeline
+from diffusers import DiffusionPipeline
 import torch
 
-# model_name = "Qwen/Qwen-Image"
+model_name = "Qwen/Qwen-Image"
 
 class StableDiffusionImageGenerator:
     def __init__(self):
@@ -16,7 +16,9 @@ class StableDiffusionImageGenerator:
             torch_dtype = torch.float32
             device = "cpu"
 
-        self.pipe = StableDiffusionPipeline.from_pretrained("CompVis/stable-diffusion-v1-4", dtype=torch_dtype).to(device)
+        pipe = DiffusionPipeline.from_pretrained("Qwen/Qwen-Image", torch_dtype=torch_dtype)
+        self.pipe = pipe.to(device)
+
 
     def generate_image(self, prompt, negative_prompt = "", width=512, height=512):
         image = self.pipe(
