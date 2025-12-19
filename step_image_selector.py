@@ -2,13 +2,13 @@ import openai
 import base64
 from io import BytesIO
 from PIL import Image
-from gme_inference import GmeQwen2VL
+from assets.gme_inference import GmeQwen2VL
 import torch 
 
 def cosine_similarity(a, b):
     a = torch.tensor(a, dtype=torch.float32)
     b = torch.tensor(b, dtype=torch.float32)
-    return torch.nn.functional.cosine_similarity(a, b, dim=1).item()
+    return torch.nn.functional.cosine_similarity(a, b, dim=0).item()
 
 
 
@@ -17,7 +17,7 @@ class StepImageSelector:
         self.qwen_model = GmeQwen2VL('Alibaba-NLP/gme-Qwen2-VL-2B-Instruct')
         self.prompt = "describe this image in terms of visual appearance, functions of the items in the image and general colour scheme of the image."
 
-    def select_best_image(self, prev_img, images):
+    def select_best_image(self, prev_img, images, step=0):
         """
         Generates k candidate images for the step_text using the Stable Diffusion API,
         optionally considering the previous PIL image as context,
@@ -27,16 +27,18 @@ class StepImageSelector:
             The base64 string of the best image, or None.
         """
         # Generate k images
+        print(f"Selecting image for step {step} for a total of {len(images)} images")
         prev_embedding = self.qwen_model.embed([self.prompt], [prev_img])
         cur_embedding = self.qwen_model.embed([self.prompt] * len(images), images)
 
         best_score = 0
         best_img = images[0]
-        for cur in cur_embedding: 
-            score = cosine_similarity(prev_embedding[0], cur_embedding)
+        for i, cur in enumerate(cur_embedding): 
+            # print(prev_embedding[0].shape, cur.shape) 
+            score = cosine_similarity(prev_embedding[0], cur)
             if score >= best_score: 
                 best_score = score 
-                best_img = cur 
+                best_img = images[i] 
         return best_img 
             
        

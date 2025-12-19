@@ -1,6 +1,11 @@
 from openai import OpenAI
 import pandas as pd 
 import json 
+import os
+from dotenv import load_dotenv
+
+load_dotenv() 
+COMPASS_API_KEY = os.getenv("COMPASS_API_KEY")
 
 class InstructionPlanner:
     def __init__(self, api_key):
@@ -70,7 +75,7 @@ class InstructionPlanner:
             
         
 
-    def generate_text_plan(self, instruction, min_steps=5, max_steps=10):
+    def generate_text_plan(self, instruction, output_folder=None, min_steps=5, max_steps=10):
         prompt = (
             f"Break down the instruction \"{instruction}\" into a step-by-step plan. "
             f"Generate between {min_steps} and {max_steps} clear, concise steps, generate only the step plan without other words."
@@ -82,7 +87,7 @@ class InstructionPlanner:
                             "content": prompt,
                         }
                     ],
-                    model="gpt-4o",
+                    model="gpt-5.1",
                     temperature=0.01,
                     extra_headers={
                         "Provider": "OpenAI"
@@ -91,11 +96,13 @@ class InstructionPlanner:
         content = chat_completion.choices[0].message.content
         steps = [line.strip() for line in content.strip().split('\n') if line.strip()]
         image_prompts = self.generate_image_plan(steps)
-        pd.DataFrame({"text_plans": steps, "image descriptions": image_prompts}).to_csv("output/text_plans.csv")
+        print(steps)
+        print(image_prompts)
+        pd.DataFrame({"text_plans": steps, "image descriptions": image_prompts}).to_csv(f"{output_folder}/text_plans.csv")
         return image_prompts
 
 if __name__ == "__main__":
-    ip = InstructionPlanner("xxx")
+    ip = InstructionPlanner(COMPASS_API_KEY)
     plan = ip.generate_text_plan("How to cook a fried egg?")
     print(plan)
 
