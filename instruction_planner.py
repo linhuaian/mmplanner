@@ -96,8 +96,13 @@ class InstructionPlanner:
         content = chat_completion.choices[0].message.content
         steps = [line.strip() for line in content.strip().split('\n') if line.strip()]
         image_prompts = self.generate_image_plan(steps)
-        print(steps)
-        print(image_prompts)
+        
+        # Ensure same length (truncate to shorter)
+        min_len = min(len(steps), len(image_prompts))
+        steps = steps[:min_len]
+        image_prompts = image_prompts[:min_len]
+        
+        print(f"Generated {len(steps)} steps")
         pd.DataFrame({"text_plans": steps, "image descriptions": image_prompts}).to_csv(f"{output_folder}/text_plans.csv")
         return image_prompts
 
