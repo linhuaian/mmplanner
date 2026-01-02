@@ -179,8 +179,8 @@ Return JSON: {{"image_prompt": "detailed prompt showing objects in correct state
 if __name__ == "__main__":
     agent = Agent()
     
-    task = "how to cook a fried egg"
+    task = "How to make cheesy garlic pull-apart bread?"
     output_folder = f"./output/{task.replace('?', '').replace(' ', '_').lower()}"
     
     # Run full pipeline (requires GPU)
-    agent.run(task, output_folder, k=2)
+    agent.run(task, output_folder, k=20)
