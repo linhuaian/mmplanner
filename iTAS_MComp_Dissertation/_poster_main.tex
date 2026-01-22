@@ -1,0 +1,79 @@
+% CVPR 2023 Paper Template
+% based on the CVPR template provided by Ming-Ming Cheng (https://github.com/MCG-NKU/CVPR_Template)
+% modified and extended by Stefan Roth (stefan.roth@NOSPAMtu-darmstadt.de)
+
+\documentclass[10pt,twocolumn,letterpaper,table]{article}
+
+%%%%%%%%% PAPER TYPE  - PLEASE UPDATE FOR FINAL VERSION
+\usepackage{cvpr}      % To produce the REVIEW version
+%\usepackage{cvpr}              % To produce the CAMERA-READY version
+%\usepackage[pagenumbers]{cvpr} % To force page numbers, e.g. for an arXiv version
+
+% Include other packages here, before hyperref.\
+
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18} 
+\usepackage{xcolor}
+\usepackage{soul}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{subfigure}
+\usepackage{overpic}
+\usepackage{pifont}% http://ctan.org/pkg/pifont
+\usepackage[accsupp]{axessibility}
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+% It is strongly recommended to use hyperref, especially for the review version.
+% hyperref with option pagebackref eases the reviewers' job.
+% Please disable hyperref *only* if you encounter grave issues, e.g. with the
+% file validation for the camera-ready version.
+%
+% If you comment hyperref and then uncomment it, you should delete
+% ReviewTempalte.aux before re-running LaTeX.
+% (Or just hit 'q' on the first LaTeX run, let it finish, and you
+%  should be clear).
+\definecolor{cvprblue}{rgb}{0.21,0.49,0.74}
+\usepackage[pagebackref,breaklinks,colorlinks,citecolor=cvprblue]{hyperref}
+
+
+% Support for easy cross-referencing
+\usepackage[capitalize]{cleveref}
+\crefname{section}{Sec.}{Secs.}
+\Crefname{section}{Section}{Sections}
+\Crefname{table}{Table}{Tables}
+\crefname{table}{Tab.}{Tabs.}
+\definecolor{myblue}{RGB}{24, 131, 192}
+\definecolor{myorange}{RGB}{255, 136, 0}
+\definecolor{mygreen}{RGB}{37, 171, 20}
+\definecolor{myred}{RGB}{222,35,38}
+\definecolor{mybrown}{RGB}{160, 113, 20}
+
+%%%%%%%%% PAPER ID  - PLEASE UPDATE
+\def\cvprPaperID{1238} % *** Enter the CVPR Paper ID here
+\def\confName{CVPR}
+\def\confYear{2024}
+\newcommand{\HG}[1]{\textcolor{blue}{HG: #1}}
+\newcommand{\GD}[1]{\textcolor{cyan}{GD: #1}}
+\newcommand{\AY}[1]{\textcolor{magenta}{AY: #1}}
+
+\begin{document}
+
+% \input{cvpr_poster/tab_all}
+% \input{cvpr_poster/fig_tc}
+% \input{cvpr_poster/fig_archi}
+% \input{cvpr_poster/tab_comparison}
+% \input{cvpr_poster/fig_tca}
+% \input{cvpr_poster/fig_gen}
+% \input{cvpr_poster/fig_order}
+% \input{cvpr_poster/tab_mem}
+% \input{cvpr_poster/tab_ratio}
+\input{cvpr_poster/eq}
+
+\end{document}

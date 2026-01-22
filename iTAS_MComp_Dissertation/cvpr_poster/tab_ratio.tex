@@ -1,0 +1,17 @@
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
+% \usepackage{multirow}
+\begin{table}[tb]
+\centering
+\begin{tabular}{lcccccc}
+\toprule
+&$\mathcal{T}$(\%)  & Acc & Edit & \multicolumn{3}{c}{F1 @ \{10, 25, 50\}} \\ \cmidrule(lr){2-2} \cmidrule(lr){3-7}
+Exemplar& - & 22.6 & 34.8 & 36.0 & 32.4 & 25.2\\ \cmidrule(lr){2-2} \cmidrule(lr){3-7}
+\multirow{4}{*}{Ours}&25 & {41.7} & {43.2} & {46.1} & {40.9} & 31.5 \\ 
+&50 & {42.1} & {43.3} & {45.1} & {40.5} & 31.5 \\ 
+&75 & {45.3} & {45.9} & {47.8} & \textbf{43.7} & \textbf{34.7} \\ 
+\rowcolor{gray!30}\cellcolor{white} & 100 & \textbf{47.4} & \textbf{46.9} & \textbf{48.2} & {42.8} & 33.4 \\ \bottomrule
+\end{tabular}
+% \caption{Different ratios for TCA training on Breakfast. The final performance is correlated with the quantity of data used in TCA training. A higher volume of training data leads to improved final perfromance.}
+\label{tab:vaeratio}
+\end{table}

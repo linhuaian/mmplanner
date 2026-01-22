@@ -1,0 +1,28 @@
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
+% \usepackage{multirow}
+\begin{table*}[!ht]
+\centering
+\scalebox{1}{
+\begin{tabular}{clcccccccccc}
+\toprule
+\multirow{2}{*}{\# Tasks} & \multirow{2}{*}{} & \multicolumn{5}{c}{MSTCN} & \multicolumn{5}{c}{ASFormer} \\ \cmidrule(lr){3-7} \cmidrule(lr){8-12}
+ &  & Acc & Edit & \multicolumn{3}{c}{F1 @ \{10, 25, 50\}} & Acc & Edit & \multicolumn{3}{c}{F1 @ \{10, 25, 50\}} \\ \midrule
+ &&\multicolumn{10}{c}{Breakfast}\\\midrule
+\multirow{4}{*}{10} & Finetune & 7.4 & 7.2 & 7.5 & 7.0 & 5.4 & 9.9 & 9.8 & 10.3 & 9.4 & 7.5 \\
+ & Exemplar & 16.1 & 13.3 & 13.8 & 12.5 & 9.5 & 12.4 & 11.2 & 11.7 & 10.7 & 8.5 \\
+ &  \cellcolor{gray!30}Ours & \cellcolor{gray!30}\textbf{29.4} & \cellcolor{gray!30}\textbf{25.9} & \cellcolor{gray!30}\textbf{26.3} & \cellcolor{gray!30}\textbf{23.5} & \cellcolor{gray!30}\textbf{17.7} & \cellcolor{gray!30}\textbf{34.2} & \cellcolor{gray!30}\textbf{32.4} & \cellcolor{gray!30}\textbf{33.1} & \cellcolor{gray!30}\textbf{30.1} & \cellcolor{gray!30}\textbf{23.4} \\
+ & \textcolor{gray}{Original} & \textcolor{gray}{43.1} & \textcolor{gray}{41.1} & \textcolor{gray}{41.2} & \textcolor{gray}{37.6} & \textcolor{gray}{29.5} & \textcolor{gray}{48.1} & \textcolor{gray}{45.2} & \textcolor{gray}{45.9} & \textcolor{gray}{42.4} & \textcolor{gray}{34.2} \\ \midrule
+\multirow{4}{*}{5} & Finetune & 15.4 & 15.8 & 16.6 & 15.8 & 12.7 & 15.7 & 16.1 & 16.9 & 15.8 & 13.2 \\
+ & Exemplar & 32.5 & 28.9 & 30.8 & 28.5 & 22.9 & 29.5 & 27.5 & 28.7 & 26.7 & 22.0 \\
+ & \cellcolor{gray!30}Ours & \cellcolor{gray!30}\textbf{54.5} & \cellcolor{gray!30}\textbf{49.4} & \cellcolor{gray!30}\textbf{51.1} & \cellcolor{gray!30}\textbf{46.9} & \cellcolor{gray!30}\textbf{37.7} & \cellcolor{gray!30}\textbf{57.2} & \cellcolor{gray!30}\textbf{56.8} & \cellcolor{gray!30}\textbf{58.3} & \cellcolor{gray!30}\textbf{54.0} & \cellcolor{gray!30}\textbf{43.6} \\
+ & \textcolor{gray}{Original} & \textcolor{gray}{60.4} & \textcolor{gray}{59.1} & \textcolor{gray}{60.3} & \textcolor{gray}{56.1} & \textcolor{gray}{46.0} & \textcolor{gray}{65.1} & \textcolor{gray}{64.2} & \textcolor{gray}{65.6} & \textcolor{gray}{61.5} & \textcolor{gray}{51.0} \\ \midrule
+&&\multicolumn{10}{c}{YouTube Instructional}\\ \midrule
+\multirow{4}{*}{5}& Finetune & 13.6 & 2.8 & 3.6 & 2.7 & 0.6 & 13.9 & 11.5 & 11.1 & 9.8 & 6.3 \\
+& Exemplar & \textbf{30.8} & 19.7 & 19.8 & 16.0 & 9.3 & 22.1 & 18.9 & 17.7 & 15.3 & 10.0 \\
+& \cellcolor{gray!30}Ours & \cellcolor{gray!30}30.2 & \cellcolor{gray!30}\textbf{25.0} & \cellcolor{gray!30}\textbf{21.9}& \cellcolor{gray!30}\textbf{18.5} & \cellcolor{gray!30}\textbf{11.1} & \cellcolor{gray!30}\textbf{25.2} & \cellcolor{gray!30}\textbf{20.9} & \cellcolor{gray!30}\textbf{20.1} & \cellcolor{gray!30}\textbf{17.5} & \cellcolor{gray!30}\textbf{11.4} \\
+&\textcolor{gray}{Original} & \textcolor{gray}{55.9} & \textcolor{gray}{39.4} & \textcolor{gray}{38.1} & \textcolor{gray}{32.2} & \textcolor{gray}{19.1} & \textcolor{gray}{59.2} & \textcolor{gray}{51.1} & \textcolor{gray}{45.4} & \textcolor{gray}{39.1} & \textcolor{gray}{25.5} \\ \bottomrule
+\end{tabular}}
+%\caption{Performance comparison on Breakfast and YouTube Instructional. Our approach consistently surpasses the baselines, with both MSTCN and ASFormer backbones. %(Results are averaged over five random seeds, refer to Supplementary Materials for variations.)}%~\AY{take-away statement on performance.} ~\AY{ref supplementary for var over runs.}}
+\label{tab:all}
+\end{table*}

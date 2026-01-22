@@ -1,0 +1,21 @@
+\chapter{Experiments}
+
+% Placeholder content.
+
+\section{Overview}
+Describe the motivation and problem setting for state-consistent multi-step image generation.
+
+\section{Approach}
+Summarize the agent feedback loop, including:
+\begin{itemize}
+  \item ground-truth state generation per step (text)
+  \item embedding-based scoring (e.g., CLIP text vs image)
+  \item candidate selection from intermediate generations
+  \item iteration until state consistency improves
+\end{itemize}
+
+\section{Notes}
+Add figures/tables by editing the files under \texttt{\detokenize{chapters/ch-experiments/tex/}}.
+
+% Auto-generated CLIP evaluation summary (run `python -u report/gen_clip_results.py`)
+\input{chapters/ch-experiments/tex/clip_results.tex}

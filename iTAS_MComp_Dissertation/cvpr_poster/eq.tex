@@ -1,0 +1,23 @@
+\begin{equation*}\label{eq:iltas}
+    \mathcal{L}^b_{\text{iltas}} = \underset{(x,y)\in\mathcal{T}_b\cup \hat{\mathcal{T}}_{1:b}}{\mathcal{L}_{\text{cls}}(x,y)} + \lambda \cdot \underset{(x,y)\in\mathcal{T}_b\cup \hat{\mathcal{T}}_{1:b}}{\mathcal{L}_{\text{sm}}(x,y)}
+\end{equation*}
+
+\begin{equation*}\label{eq:segfeat}
+   \hat{x}_i = p_{\theta}(x|z_n, a_n, c_i)\; \text{and}\; {i \in [1,...,\ell]}
+\end{equation*}
+
+\begin{equation*}\label{eq:gen}
+    \hat{v} = \text{concat}(\hat{\mathbf{x}}_1, ..., \hat{\mathbf{x}}_{\hat{N}})
+\end{equation*}
+
+\begin{equation*}\label{eq:sample}
+    \hat{\mathbf{s}}_b \sim \text{Uniform}(\mathbf{S}_{b})
+\end{equation*}
+
+\begin{equation*}\label{eq:covar}
+    c_i = (i-1)/(\ell-1)\; \text{and}\; c_i \in [0, 1]
+\end{equation*}
+
+\begin{equation*}\label{eq:tca}
+    \mathcal{L}_{\text{TCA}} = \underbrace{\mathbb{E}_z \log p_{\theta}(x|z,a,c)}_{\mathcal{L}_{\text{recon}}} - \underbrace{\text{D}_{\text{KL}}(q_{\phi}(z|x,a,c)||p(z))}_{\mathcal{L}_{\text{reg}}}
+\end{equation*}

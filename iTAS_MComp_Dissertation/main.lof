@@ -1,0 +1,31 @@
+\babel@toc {english}{}\relax 
+\addvspace {10pt}
+\contentsline {figure}{\numberline {1.1}{\ignorespaces Overview of Temporal Action Segmentation. From~\blx@tocontentsinit {0}\cite {ding_temporal_2023}. }}{2}{figure.1.1}%
+\contentsline {figure}{\numberline {1.2}{\ignorespaces Overview of Incremental Learning }}{2}{figure.1.2}%
+\addvspace {10pt}
+\contentsline {figure}{\numberline {2.1}{\ignorespaces Overview of TCNs Proposed by~\blx@tocontentsinit {0}\citeauthor {lea2017tcn}. From~\blx@tocontentsinit {0}\cite {lea2017tcn}. }}{9}{figure.2.1}%
+\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {ED-TCN}}}{9}{figure.2.1}%
+\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {Dilated TCN}}}{9}{figure.2.1}%
+\contentsline {figure}{\numberline {2.2}{\ignorespaces Overview of MSTCN. From~\blx@tocontentsinit {0}\cite {farha2019ms}. }}{10}{figure.2.2}%
+\contentsline {figure}{\numberline {2.3}{\ignorespaces Overview of ASFormer. From~\blx@tocontentsinit {0}\cite {yi2021asformer}. }}{11}{figure.2.3}%
+\addvspace {10pt}
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Temporally Coherent Action (TCA) model. }}{19}{figure.3.1}%
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Replay Data Generation. }}{21}{figure.3.2}%
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Learning schemes for temporal action segmentation.}}{22}{figure.3.3}%
+\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Standard TAS}}}{22}{figure.3.3}%
+\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {Incremental TAS with TCA Replay}}}{22}{figure.3.3}%
+\addvspace {10pt}
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Performance following each incremental step with the varied task sequence.}}{32}{figure.4.1}%
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Comparsion of confusion matrices of different approaches on Breakfast in a 10-task setup.}}{33}{figure.4.2}%
+\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Finetune}}}{33}{figure.4.2}%
+\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {Exemplar}}}{33}{figure.4.2}%
+\contentsline {subfigure}{\numberline {(c)}{\ignorespaces {Ours}}}{33}{figure.4.2}%
+\contentsline {subfigure}{\numberline {(d)}{\ignorespaces {Original}}}{33}{figure.4.2}%
+\contentsline {figure}{\numberline {4.3}{\ignorespaces T-SNE visualizations of generated action segments. }}{34}{figure.4.3}%
+\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {`\textit {pour milk}' from activity ``\textit {cereal}''}}}{34}{figure.4.3}%
+\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {`\textit {pour milk}' from activity ``\textit {cereal}''}}}{34}{figure.4.3}%
+\contentsline {subfigure}{\numberline {(c)}{\ignorespaces {`\textit {take knife}' from activity ``\textit {juice}''}}}{34}{figure.4.3}%
+\addvspace {10pt}
+\contentsline {figure}{\numberline {5.1}{\ignorespaces Effect of task sequence order to training set composition and model performance. }}{37}{figure.5.1}%
+\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Training set composition per increment. Shaded areas indicate the proportion of replay buffer frames.}}}{37}{figure.5.1}%
+\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {Per-task accuracy across increments. Each series tracks the accuracy scores for one task.}}}{37}{figure.5.1}%

@@ -1,0 +1,136 @@
+\chapter{Literature Review}
+\label{ch:lit_rev}
+
+\section{Temporal Action Segmentation (TAS)}
+
+Generally, approaches in temporal action segmentation can be decoupled into two steps. First, appearance and short-term motion information from the input video is encoded into per-frame features. Then, dedicated segmentation models, designed to learn long-range dependencies from the features, are used to predict per-frame action labels.
+
+TAS approaches typically do not train these two tasks in an end-to-end model, due to the complexity of learning video features. For work focused on the design of segmentation models, it has become standard to use pre-computed frame-wise features. Through this practice, models can be compared fairly without the effect of variances in the feature extraction phase.
+
+\subsection{Video Features}
+%The methods we use for video feature extraction are usually taken from action recognition. Many of these methods were developed for / originated in action recoginiton and has been built upon by TAS.
+Video feature extraction methods are traditionally based on approaches from activity recognition. While representation learning in TAS is an area of active research \cite{li2022bridge,ishihara2022mcfm}, two older feature representations that are still widely used are Fisher Encoded Improved Dense Trajectories (IDT) and Inflated 3D ConvNets (I3D).
+
+The original work on dense trajectories (DT)~\cite{wang2011dt} designed a hand-crafted trajectory-aligned feature representation. Classical feature descriptors are extracted along the dense trajectories and encoded into a bag-of-features representation, which could then be used to perform action recognition. A mechanism to improve the calculated trajectories by suppressing the effect of camera motion was proposed in \cite{wang2013action} to form improved dense trajectories (IDT). In the same work, \citeauthor{wang2013action} reported that encoding the trajectory-aligned descriptors into Fisher vectors~\cite{perronnin2010fisher} improved performance compared to the previous bag-of-features approach. Fisher encoded IDT features are now widely used in many standard TAS datasets.
+
+I3D~\cite{carreira2017quo} is a two-stream deep network feature extractor based on an inflated Inception-V1~\cite{ioffe2015inception} image classification network. The Inception-VI network is first pre-trained on ImageNet~\cite{russakovsky2015imagenet}, then the $N \times N$ filters of the network are expanded temporally to $N \times N \times N$. The inflated network is bootstrapped with the pre-trained weights by replicating the parameter values into the new temporal dimension and scaling them by $\frac{1}{N}$. The I3D network is pre-trained on the the Kinetics Human Action Video Dataset~\cite{kay2017kinetics} before being used to extract features. The I3D network has an RGB stream and an optical flow stream, each of which outputs a 1024-D feature vector. The 1024-D vectors can either be used on their own or be concatenated to a 2048-D representation.
+
+\subsection{Segmentation Models}
+
+While the extracted video features can be used to make direct frame-wise action classifications, using them together with segmentation models specifically designed to capture long-range temporal relations can achieve better performance. Thus, much research has been dedicated to developing segmentation models.
+
+\subsubsection{Traditional Approaches}
+
+Traditional approaches that model long-range temporal relations include sliding windows~\cite{rohrbach2012slidingwindow,ni2016sliding}, language and probabilistic models~\cite{richard2016language,kuehne2016hmm}, and Recurrent Neural Networks (RNN)~\cite{richard2017weakrnn,singh2016rnndetection}. However, these methods were still constrained to information in a local temporal neighborhood, an immediately prior state, or a fixed-size context vector, all of which may be insufficient to capture very long-term dependencies. \citeauthor{lea2017tcn} identified this shortcoming and proposed temporal convolutional networks, which have since dominated the field.
+
+\subsubsection{Temporal Convolutional Networks}
+
+\input{chapters/ch-lit_review/tex/fig_tcn}
+
+Temporal convolutional networks (TCN)~\cite{lea2017tcn} are a class of network architectures whose distinguishing design is a hierarchy of temporal convolutional layers that allow it to capture much more of an input's temporal dependencies compared to previous approaches. The first two TCN variants introduced by \citeauthor{lea2017tcn} in~\cite{lea2017tcn} were the Encoder-Decoder TCN (ED-TCN) and the Dilated TCN.
+
+ED-TCN (see~\cref{subfig:edtcn_ov}) takes inspiration from the encoder-decoder architecture. It uses an encoder to compress the input into a latent representation which is passed to the decoder to output frame-wise predictions. The encoder uses several temporal convolution and max-pooling operations to force the input features into a compact latent encoding. The temporal receptive field of the convolution operation grows at deeper levels in the encoder as the intermediate output is temporally shrunk with max-pooling. The decoder block then takes the encoder's condensed output and processes it through several upsampling and convolution operations to output the frame-wise action predictions. The temporal information in the condensed latent representation is distributed to the predictions as it moves through the decoder's layers. 
+
+Dilated TCN (see~\cref{subfig:dilatedtcn_ov}) is an alternate architecture proposed that uses a sequence of dilated temporal convolution operations to increase the receptive field of the network. Dilated TCN is composed of a series of blocks, where each block consists of a sequence of dilated temporal convolutional layers of increasing dilation rate. At early layers, a low dilation rate means filters capture short-term temporal dependencies. Later layers convolve the activations of early layers while simultaneously having larger dilation rates, capturing longer-range temporal relations.
+
+Both variants increase the temporal receptive field of the segmentation model significantly compared to previous approaches and are able to capture long-range temporal patterns. Additionally, TCN's can process all timesteps in the input in parallel, significantly decreasing training and inference time compared to models like RNN's, which can only process inputs sequentially.
+
+\subsubsection{Multi-Stage Temporal Convolutional Network}
+
+\input{chapters/ch-lit_review/tex/fig_mstcn}
+
+\citeauthor{farha2019ms} argue that the originally proposed ED-TCN method does not fully capture fine-grained details in two aspects. By using temporal pooling, some fine-grained details may be lost. The videos used for ED-TCN were also downsampled to only $1 - 3$ frames per second, and the low temporal resolution might result in missing information at action boundaries or very short action segments. They propose in \cite{farha2019ms} the Multi-Stage Temporal Convolutional Network (MSTCN), an architecture that uses dilated temporal convolutional operations in a stack of stages to iteratively refine action class predictions.
+
+Taking inspiration from the success of multi-stage architectures in human pose estimation, MSTCN (see~\cref{fig:mstcn_ov}) is composed of several stages, each of which takes in the previous stage's predictions and refines it. Each stage is similar to a block in Dilated TCN. It is composed of layers of dilated temporal convolutions that increase in dilation rate as the network gets deeper, achieving a large temporal receptive field with only a few kernel parameters. The first stage takes in the input features and outputs the initial frame-wise action class predictions. Successive stages takes the action class predictions of the prior stage and refines it. They hypothesize that the multi-stage architecture benefits TAS in two ways. The network is given more context when it predicts the action class at each timestep. The network is learning temporal dependencies between action class predictions instead of raw features, letting it learn action sequences better and prevent over-segmentation. 
+They also introduce a novel smoothing loss that enforces the predicted logits of adjacent timesteps to be smooth. %The experimental results showed that while the proposed smoothing loss only slightly improved frame-wise accuracy, it was able to lower over-segmentation errors.
+
+Overall, their proposed method improved performance on all metrics when compared to previous approaches. Their smoothing loss and approach of multi-stage iterative refinement has been carried over into more recent works.
+
+% \subsubsection{Other TCN Improvements}
+% [2-3 sentences. What are the shortcomings of MSTCN and how does the newer MS-TCN++ address it]
+
+% % Talk about Coarse to Fine Models
+% [2 sentence footnote alongside MS-TCN++. What is C2F trying to address and how does it do it?] Another advancement to TCN suggested is the Coarse-to-Fine TCN model. Building upon the multi-stage principles of MSTCN~\cite{singhania2023c2f} proposes to [something here about coarse to fine]
+
+\subsubsection{Attention-based TCN}
+
+\input{chapters/ch-lit_review/tex/fig_asformer}
+
+The Transformer~\cite{vaswani2017attention} architecture has seen great success in natural language processing and other sequence-related tasks. It has similarly been adapted into TAS by \citeauthor{yi2021asformer} with the ASFormer~\cite{yi2021asformer}.
+
+The ASFormer (see~\cref{fig:asformer_ov}) is a Transformer-inspired Encoder-Decoder network for TAS. The encoder block is composed of a sequence of layers of dilated temporal convolutions and self-attention mechanisms. These layers are hierarchical in that the dilation rate and self-attention operation's window size are increased in as the layers go deeper, allowing the model to capture a larger temporal receptive field. The encoder's outputs are used to calculate an initial per-frame action class prediction. 
+
+The decoder's purpose is to refine the encoder's initial action class predictions to improve performance. Similar to the encoder block, a decoder block is composed of a hierarchical sequence of dilated temporal convolutions and cross-attention mechanisms. Inspired by the success of MSTCN, the decoder follows a multi-stage design pattern. It is composed of multiple decoder blocks, where each block refines the action predictions of the previous block. The first decoder block takes in the initial encoder class predictions and cross-attends to the encoder's output features. Later decoder blocks works with the previous decoder block's predictions and output features. Each decoder block acts as a refinement stage that iteratively improves the model's predictions.
+
+The ASFormer was trained using a joint cross-entropy and smoothing loss, as was proposed in \cite{farha2019ms}. It was evaluated on standard TAS datasets and outperformed previous approaches, including MSTCN, on several metrics.
+% ASFormer is shown to outperfrom previous tasks, showing the strength of the attention mechanis. However, it may be more difficult to train.
+% [Conclude sub section by talking about the ASFormer's performance compared to previously discussed approaches. Takeaways/ionsights from ASFromer? What downsides are there?]
+
+We experiment with MSTCN and ASFormer as the backbone networks of our approach.
+
+
+% \subsubsection{Diffusion-based TCN}
+% [Diffusion is also growing. It iteretively improves on the~\cite{liu2023diffact}]
+% % Talk about DiffAct
+
+
+\section{Class Incremental Learning (CIL)}
+
+Incremental learning aims to develop algorithms that can continuously update a model with new information without forgetting prior information. Formulation of the incremental learning task can be categorized into three fundamental types~\cite{vandeven2022three}: task incremental learning, domain incremental learning, and class incremental learning.
+
+In task incremental learning, the model is incrementally trained on discrete tasks, and the identity of the task is always available to the model, even during evaluation. In practice, this allows the model to use task-specific components. In domain incremental learning, tasks share the same labels, but the input experiences a domain shift. For example, the first task could be learning to classify a set of landmarks at daytime, and the second task would be learning to classify the same landmarks but at night. In class incremental learning, the model is trained on a sequence of discrete tasks, and the task identity is not provided to the model. Effectively, the model needs to learn how to discriminate in growing number of classes, making this significantly more difficult than task incremental learning.
+
+Incremental temporal action segmentation predicts action class labels for each input frame and is closest in nature to class incremental learning. The remainder of this work will discuss incremental learning in the context of class incremental learning (CIL).
+
+% Ensuring that intelligent systems can continually adapt and accumulate knowledge in our rapidly evolving world is essential. This concept is embodied in incremental learning~\cite{de2021continual}. A key challenge is to acquire new knowledge gradually without 
+% catastrophic forgetting~\cite{french1999catastrophic} 
+% of previously learned information. 
+%~\GD{efforts on the incremental learning, however, they have been adopted in the image domain.}
+%~\AY{motivation for incremental learning, e.g. from application perspective, continual deployment (same as existing works)}
+
+%~\AY{limited exploration of incremental learning in video understanding context; the few works are focused on X and Y}
+
+\subsection{Common Approaches}
+% Base on the class incremental learning survey from TPAMI
+\label{sec:cil_techniques}
+
+Catastrophic forgetting can be attributed to some primary factors~\cite{masana2023cilsurvey}. When a model is trained incrementally, it is inclined to maximize performance on newer tasks. Weights and activations that were integral to old tasks are changed to minimize loss on the new task, leading to a form of network drift. Additionally, since the model is only exposed to samples of one task at a time, it is never jointly trained on all classes and suffers in discriminating classes between tasks, leading to inter-task confusion. Approaches that prevent catastrophic forgetting usually aim to mitigate these issues, and common techniques fall under either data replay or regularization.
+
+\subsubsection{Data Replay}
+% Describe the appraoch. Who first suggested it
+% How does it prevent catastrophic forgetting
+% Are there subtypes
+% Give some examples
+
+Data replay or data rehearsal mitigates catastrophic forgetting by re-exposing the model to representatives of past data. A subset of the original training samples could be stored and used for review~\cite{rebuffi2017icarl,wu2019large,hou2019learning}. These methods can use a simple random sampling strategy or can use more considered approaches that select the most useful samples. The incremental classifier and representation learning (iCarl)~\cite{rebuffi2017icarl} method uses herding to ensure that the average of the set of class samples it chooses is closest to the class's training set average. Alternatively, the data distribution of past tasks could be learned by a model, and the exemplar set can be populated with generated samples~\cite{hayes2020remind,lesort2019generative,shin2017continual}. The deep generative replay framework introduced in~\cite{shin2017continual} trains a generative model alongside a classifier at each step. The generative model learns the cummulative input space up to the current task, and at the next incremental step, the generator is used to generate samples to train the next generator and classifier.
+
+\subsubsection{Regularization}
+
+Another way to address catastrophic forgetting is to prevent model drift by adding regularization terms to the loss function. Weight regularization identifies the parameters in the model that are significant for past tasks and penalizes changes to them~\cite{kirkpatrick2017ewc,zenke2017continual,aljundi2018mas}. \citeauthor{kirkpatrick2017ewc} propose elastic weight consolidation (EWC) which introduces a loss term that scales the penalty of a parameter update by an importance weight, such that changing the values of parameters that are important to past task predictions will incur a significant loss. 
+Alternatively, instead of penalizing parameter updates, other methods have elected to minimize changes to layer activations~\cite{li2016lwf,junting2020dmc,jung2018lfl}. In these methods, weights can be freely updated so long as the activations of past tasks remain similar. In Learning without Forgetting (LwF)~\cite{li2016lwf}, \citeauthor{li2016lwf} introduce a distillation loss term that encourages the temperature scaled prediction score of prior task classes to stay the same while training on a new task.
+
+% \subsubsection{Other Approaches}
+% [Neuron expansion methods that increase the capacity of the model. Feature boosting methods like FOSTER which trains uses feature boosting to train a student model to learn the teacher model. Bias-correction methods that are designed to prevent the model from favouring predicting classes from more recent tasks (iCarl uses exemplar clustering when classifying to avoid the classifier layer's recency bias)]
+
+For this work, we propose a data replay approach for incremental temporal action segmentation. Data replay is commonly used and effective, and it proves to be a good initial approach for iTAS.
+
+\subsection{Data Replay in the Video Domain}
+
+%Limited attention has been given to the video domain~\cite{villa2022vclimb,alssum2023just}, and most works rely on direct replay of frame-wise exemplars while neglecting temporal aspects. This work proposes leveraging generative models, focusing on maintaining temporal coherence for video data replay.
+
+A recent shift of incremental learning from static images to dynamic videos has brought about the application of data replay into the video domain, specifically action recognition~\cite{villa2022vclimb,alssum2023just,park2021class,pei2022learning}. Due to the memory burden of storing full videos for data replay, the theme of CIL research in the action recognition has been the development of memory-efficient video data replay techniques. 
+
+\citeauthor{villa2022vclimb} propose in \cite{villa2022vclimb} to store temporally downsampled videos of past tasks in the replay buffer. They address the potential domain drift by introducing a temporal consistency loss to encourage the model to learn a similar feature representation for a video's original and downsampled versions, i.e., learn representations that are invariant to temporal resolution.
+
+\citeauthor{pei2022learning} propose in \cite{pei2022learning} a frame condensation approach called FrameMaker to reduce the storage demands of video exemplars by storing only a single representative frame for the entire video. FrameMaker takes in a video instance and integrates its frames to a condensed frame using learned frame-wise weights for each video instance. A set of learnable instance-specific prompt parameters are added to the condensed frame to enrich its representation capabilities. The authors interpret the prompt parameters as restoring the lost spatio-temporal information back into the condensed frame.
+
+\citeauthor{alssum2023just} similarly propose a single-frame exemplar approach in Single fraMe Incremental LEarner (SMILE)~\cite{alssum2023just}. Instead of integrating a condensed frame like FrameMaker, SMILE selects a single frame from the video instance without modification and store it as the instance exemplar. To address the domain shift between the video and static image, they design a loss to encourage the model to learn similar representations for both the original video and its ``boring'' version, where a ``boring'' video is the sampled frame replicated temporally to match the original length.
+
+% As mentioned in~\ref{sub:challenge_il_vid}, these non-generative data replay approaches have been successful for action recognition due to the static bias in action recognition datasets and the lower number of frames necessary for accurate video classification predictions. Meanwhile, for iTAS, temporal modeling of movements and object interactions is needed, since the static bias does not manifest as strongly. Replay samples also need to be stored at close to full temporal resolution since iTAS makes frame-wise action predictions, and the fine details necessary might be lost with temporal sub-sampling. 
+%As mentioned in~\ref{sub:challenge_il_vid}, non-generative data replay approaches are successful for action recognition due to the static bias towards the scene and the low number of frames needed to make accurate predictions. For iTAS, the static bias does not manifest as strongly, and explicit temporal modeling of movements and interactions is necessary. Replay samples also need to be stored at close to full temporal resolution to make accurate fine-grained action predictions. These unique properties of iTAS lead us to develop a generative data replay solution for it.
+
+% [Cite and talk about 2 generative data replay method in images. Generative data replay has seen quite the growth in the image domain, especially with GAN and diffusion(?) DeepCIL talks about the generative replay methods in the image domain. Can cite those GR and the VAE method] 
+% Memory replay GANs: Learning to generate images from new categories without forgetting
+% However, we find that research into generative data replay lacking in the video domain.
+
+Unlike current data replay approaches in action recognition, we use a generative model to populate the replay buffer, and unlike generative approaches for image tasks~\cite{hayes2020remind,lesort2019generative,shin2017continual}, our model incorporates a conditioning variable to account for the unique temporal coherence of videos. The coherence variable, defined as the relative progression within an action, assists the model in capturing the evolution of action features over time. 

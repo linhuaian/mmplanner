@@ -1,0 +1,19 @@
+% Please add the following required packages to your document preamble:
+% \usepackage{multirow}
+% \usepackage[table,xcdraw]{xcolor}
+% Beamer presentation requires \usepackage{colortbl} instead of \usepackage[table,xcdraw]{xcolor}
+\begin{table}[!h]
+\centering
+\begin{tabular}{lccccc}
+\toprule
+$M$ & Acc &Edit & \multicolumn{3}{c}{F1 @ \{10, 25, 50\}} \\ \cmidrule(lr){1-1} \cmidrule(lr){2-6}
+30 &  34.0 &  39.6 &  41.0 &  34.8 & 24.7 \\ 
+\rowcolor{gray!30}
+60 &  35.4 &  41.2 &  42.3 &  36.0 & 25.6 \\ 
+90 &  36.2 &  \textbf{42.3} &  43.9 &  \textbf{37.3} & \textbf{26.8} \\ 
+120 &  \textbf{38.0} &  \textbf{42.3} &  \textbf{44.0} &  37.1 & 26.2 \\ \bottomrule
+\end{tabular}
+\caption{Different replay sizes on Breakfast.% Revisiting more replay videos can help the model mitigate forgetting.
+}
+\label{tab:mem}
+\end{table}

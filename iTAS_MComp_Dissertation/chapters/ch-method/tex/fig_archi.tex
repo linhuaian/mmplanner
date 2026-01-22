@@ -1,0 +1,62 @@
+\begin{figure*}[!h]
+    \centering
+    \subfigure[Standard TAS]{\label{subfig:standard}
+    \begin{overpic}[width=0.24\textwidth]{chapters/ch-method/img/seg.pdf}
+    % \put(35,21){\footnotesize Inputs: $\mathbf{x}$}
+    \put(30,21){\scalefont{0.6} Inputs: $\mathbf{x}$}
+    \put(29,50.5){\scalefont{0.6} Logits: $\mathbf{p}$}
+    \put(29,93.5){\scalefont{0.6} Labels: $\mathbf{y}$}
+    \put(36,72.5){\scalefont{0.6} $\mathcal{L}_{\text{sm}}$}
+    \put(-4.4,72.5){\scalefont{0.6} $\mathcal{L}_{\text{cls}}$}
+    \put(26,39.5){\scalefont{0.6}  TAS Model }
+    \put(38.3,33){\scalefont{0.6}  $\mathcal{M}$}
+    \end{overpic}
+    }\hspace{0.5em}
+    \subfigure[Incremental TAS with TCA Replay]{\label{subfig:incremental}
+    \begin{overpic}[width=0.7\textwidth]{chapters/ch-method/img/archi.pdf}
+
+    % sequence 1:b-1
+    \put(2.5,4.5){\scalefont{0.6} $\mathbf{S}_1$}
+    \put(2.5,11.7){\scalefont{0.6} $\mathbf{S}_2$}
+    \put(1.6,18.9){\scalefont{0.6} $\mathbf{S}_{b\!-\!1}$}
+
+    % decoders 1:b-1
+    \put(13.7,8){\scalefont{0.6} $\mathcal{D}_1$}
+    \put(13.7,15.5){\scalefont{0.6} $\mathcal{D}_2$}
+    \put(12.5,22.7){\scalefont{0.6} $\mathcal{D}_{b\!-\!1}$}
+
+    % tca b
+    \put(16,31.5){$\mathcal{E}_{b}$}
+    \put(4,31.5){$\mathcal{D}_{b}$}
+    \put(13,39.5){\scalefont{0.6} $\epsilon$}
+    \put(0,39.5){\scalefont{0.6} TCA}
+    \put(7.3,26.9){\scalefont{0.5} (cache)}
+
+    % training data
+    \put(25.7,39.5){\scalefont{0.6} Current Task Data $\mathcal{T}_b$}
+    \put(44,30){\scalefont{0.6} ...}
+    \put(25,23.5){\scalefont{0.425} Generated Replay Data $\hat{\mathcal{T}}_{1:b}$}
+    \put(44,20){\scalefont{0.6} ...}
+    \put(42,13){\scalefont{0.6} ...}
+    
+
+    % segementation
+    \put(61.5, 28.5){\scalefont{0.6} \rotatebox{270}{TAS Model}}
+    \put(58.5, 23){\scalefont{0.6} \rotatebox{270}{$\mathcal{M}$}}
+
+    % incremental
+    \put(60,39.5){\scalefont{0.6} Task}
+    \put(60.5,37.2){\scalefont{0.6} $b\!-\!1$}
+    \put(56.5,4.5){\scalefont{0.6} Task}
+    \put(57,2.3){\scalefont{0.6} $b\!+\!1$}
+
+    % output
+    \put(70.5,39.5){\scalefont{0.6} Segmentation Results}
+    \put(89,20){\scalefont{0.6} ...}
+    \put(87,13){\scalefont{0.6} ...}
+    \put(89,30){\scalefont{0.6} ...}
+    \end{overpic}}
+    \caption{Learning schemes for temporal action segmentation.% (a) Standard TAS and (b) Incremental TAS with TCA at task $b$. 
+    }
+    \label{fig:archi}
+\end{figure*}

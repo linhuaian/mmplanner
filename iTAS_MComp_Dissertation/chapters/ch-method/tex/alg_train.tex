@@ -1,0 +1,20 @@
+\begin{algorithm}[t]
+\caption{Incremental Temporal Action Segmentation}
+\textbf{Input:} Task video data $\{\mathcal{T}_1, ... ,\mathcal{T}_B \}$, replay size $M$\\
+\textbf{Output:} Segmentation model $\mathcal{M}$
+\begin{algorithmic}[1]
+\State Train $\mathcal{M}$ with data $\mathcal{T}_1$;\Comment{\cref{eq:tas}}
+\State Train $(\mathcal{E}_1, \mathcal{D}_1)$ with data $\mathcal{T}_1$;\Comment{\cref{eq:tca}}
+\For{$b = 2,...,B$}\Comment{\textit{Incremental Learning}}
+    \State Initialize replay data $\hat{\mathcal{T}}_{\text{1:b}} = \varnothing$;
+    \For{$b' = 1,...,b-1$}\Comment{\textit{Replay Data Generation}}
+    \State Get $\hat{\mathbf{s}}_{b'}$ from $\mathbf{S}_{b'}$ for $M/(b\!-\!1)$ times; \Comment{\cref{eq:sample}}
+    \State Generate $\hat{v}_{b'}$ for each $\hat{\mathbf{s}}_{b'}$ with $\mathcal{D}_{b'}$;\Comment{\cref{eq:gen}}
+    \State $\hat{\mathcal{T}}_{\text{1:b}} \gets \hat{\mathcal{T}}_{\text{1:b}} \cup \{\hat{\mathbf{v}}_{b'}\}_{M/(b-1)}$;
+    \EndFor
+    \State Train $\mathcal{M}$ with data $\mathcal{T}_b \cup \hat{\mathcal{T}}_{\text{1:b}}$;\Comment{\cref{eq:iltas}}
+    \State Train $(\mathcal{E}_b, \mathcal{D}_b)$ with data $\mathcal{T}_b$;\Comment{\cref{eq:tca}}
+\EndFor
+\end{algorithmic}
+\label{alg:train}
+\end{algorithm} 

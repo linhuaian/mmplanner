@@ -1,0 +1,110 @@
+\begin{figure*}[!h]
+\centering
+\hspace{0.75em}
+\subfigure[Finetune]{\label{subfig:finetune}
+\begin{overpic}[width=0.45\textwidth]{chapters/ch-experiments/img/cm_naive}
+\put(-10,33){\rotatebox{90}{\footnotesize Groundtruth}}
+\put(33,99){\rotatebox{0}{\footnotesize Predictions}}
+\put(9.5,-0.5){\tiny 1}
+\put(18.5,-0.5){\tiny 2}
+\put(27.5,-0.5){\tiny 3}
+\put(38,-0.5){\tiny 4}
+\put(52,-0.5){\tiny 5}
+\put(63.5,-0.5){\tiny 6}
+\put(72,-0.5){\tiny 7}
+\put(78,-0.5){\tiny 8}
+\put(83,-0.5){\tiny 9}
+\put(88,-0.5){\tiny 10}
+\put(0,87.5){\tiny 1}
+\put(0,78.5){\tiny 2}
+\put(0,69.5){\tiny 3}
+\put(0,59){\tiny 4}
+\put(0,45){\tiny 5}
+\put(0,33.5){\tiny 6}
+\put(0,25){\tiny 7}
+\put(0,19){\tiny 8}
+\put(0,14){\tiny 9}
+\put(-1,8){\tiny 10}
+\end{overpic}
+}\hspace{1em}
+\subfigure[Exemplar]{\label{subfig:exemplar}
+\begin{overpic}[width=0.45\textwidth]{chapters/ch-experiments/img/cm_mean.pdf}
+\put(33,99){\rotatebox{0}{\footnotesize Predictions}}
+\put(9.5,-0.5){\tiny 1}
+\put(18.5,-0.5){\tiny 2}
+\put(27.5,-0.5){\tiny 3}
+\put(38,-0.5){\tiny 4}
+\put(52,-0.5){\tiny 5}
+\put(63.5,-0.5){\tiny 6}
+\put(72,-0.5){\tiny 7}
+\put(78,-0.5){\tiny 8}
+\put(83,-0.5){\tiny 9}
+\put(88,-0.5){\tiny 10}
+\put(0,87.5){\tiny 1}
+\put(0,78.5){\tiny 2}
+\put(0,69.5){\tiny 3}
+\put(0,59){\tiny 4}
+\put(0,45){\tiny 5}
+\put(0,33.5){\tiny 6}
+\put(0,25){\tiny 7}
+\put(0,19){\tiny 8}
+\put(0,14){\tiny 9}
+\put(-1,8){\tiny 10}
+\end{overpic}}
+
+\hspace{0.75em}
+\subfigure[Ours]{\label{subfig:ours}
+\begin{overpic}[width=0.45\textwidth]{chapters/ch-experiments/img/cm_ours.pdf}
+\put(-10,33){\rotatebox{90}{\footnotesize Groundtruth}}
+\put(33,99){\rotatebox{0}{\footnotesize Predictions}}
+\put(9.5,-0.5){\tiny 1}
+\put(18.5,-0.5){\tiny 2}
+\put(27.5,-0.5){\tiny 3}
+\put(38,-0.5){\tiny 4}
+\put(52,-0.5){\tiny 5}
+\put(63.5,-0.5){\tiny 6}
+\put(72,-0.5){\tiny 7}
+\put(78,-0.5){\tiny 8}
+\put(83,-0.5){\tiny 9}
+\put(88,-0.5){\tiny 10}
+\put(0,87.5){\tiny 1}
+\put(0,78.5){\tiny 2}
+\put(0,69.5){\tiny 3}
+\put(0,59){\tiny 4}
+\put(0,45){\tiny 5}
+\put(0,33.5){\tiny 6}
+\put(0,25){\tiny 7}
+\put(0,19){\tiny 8}
+\put(0,14){\tiny 9}
+\put(-1,8){\tiny 10}
+\end{overpic}
+}\hspace{1em}
+\subfigure[Original]{\label{subfig:gt}
+\begin{overpic}[width=0.45\textwidth]{chapters/ch-experiments/img/cm_gt.pdf}
+\put(33,99){\rotatebox{0}{\footnotesize Predictions}}
+\put(9.5,-0.5){\tiny 1}
+\put(18.5,-0.5){\tiny 2}
+\put(27.5,-0.5){\tiny 3}
+\put(38,-0.5){\tiny 4}
+\put(52,-0.5){\tiny 5}
+\put(63.5,-0.5){\tiny 6}
+\put(72,-0.5){\tiny 7}
+\put(78,-0.5){\tiny 8}
+\put(83,-0.5){\tiny 9}
+\put(88,-0.5){\tiny 10}
+\put(0,87.5){\tiny 1}
+\put(0,78.5){\tiny 2}
+\put(0,69.5){\tiny 3}
+\put(0,59){\tiny 4}
+\put(0,45){\tiny 5}
+\put(0,33.5){\tiny 6}
+\put(0,25){\tiny 7}
+\put(0,19){\tiny 8}
+\put(0,14){\tiny 9}
+\put(-1,8){\tiny 10}
+\end{overpic}
+}
+\caption{Comparsion of confusion matrices of different approaches on Breakfast in a 10-task setup.% The task sequence is given as follows: 1 - ``\textit{sandwich}'',  2 - ``\textit{juice}'', 3 - ``\textit{friedegg}'', 4 - ``\textit{scrambledegg}'', 5 - ``\textit{pancake}'', 6 - ``\textit{salat}'', 7  - ``\textit{tea}'', 8 - ``\textit{milk}'', 9 - ``\textit{cereal}'', 10 - ``\textit{coffee}''. The dashed lines indicate task boundaries, while gray rows denote the lack of instances for that action in the test data. Our approach (c) shows the closest resemblance to data replay using original features (d). 
+}
+\label{fig:cm}
+\end{figure*}

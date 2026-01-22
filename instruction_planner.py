@@ -9,6 +9,7 @@ COMPASS_API_KEY = os.getenv("COMPASS_API_KEY")
 
 class InstructionPlanner:
     def __init__(self, api_key):
+        self.api_key = api_key
 
         self.client = OpenAI(
             api_key=api_key,
@@ -75,7 +76,7 @@ class InstructionPlanner:
             
         
 
-    def generate_text_plan(self, instruction, output_folder=None, min_steps=5, max_steps=10):
+    def generate_text_plan(self, instruction, output_folder=None, min_steps=5, max_steps=10, *, verbose: bool = False):
         prompt = (
             f"Break down the instruction \"{instruction}\" into a step-by-step plan. "
             f"Generate between {min_steps} and {max_steps} clear, concise steps, generate only the step plan without other words."
@@ -95,16 +96,49 @@ class InstructionPlanner:
                 )
         content = chat_completion.choices[0].message.content
         steps = [line.strip() for line in content.strip().split('\n') if line.strip()]
-        image_prompts = self.generate_image_plan(steps)
-        
+
+        # Image descriptions should be grounded in TEXT-derived ground-truth object phrases.
+        # We use the TextObjectStateAgent to extract visually-observable objects+states from each step,
+        # then convert those phrases into an SD-friendly image prompt per step.
+        image_descriptions = []
+        if output_folder is None:
+            raise ValueError("output_folder is required so we can save text_plans.csv and ground-truth JSON outputs.")
+
+        try:
+            from object_state_agent import TextObjectStateAgent
+
+            state_agent = TextObjectStateAgent(api_key=self.api_key)
+            for i, step_text in enumerate(steps):
+                step_state = state_agent.analyze_step_text(
+                    task=instruction,
+                    step_index=i,
+                    step_text=step_text,
+                    expected_states=None,
+                    num_phrases=5,
+                    verbose=bool(verbose),
+                )
+                if step_state.phrases:
+                    # Use phrases directly as the image description backbone.
+                    image_descriptions.append(", ".join(step_state.phrases))
+                else:
+                    # Fallback: if no phrases, use the step text so SD still has something to render.
+                    image_descriptions.append(step_text)
+
+            state_agent.save_task_text(output_folder, num_phrases=5)
+        except Exception as e:
+            # If the object-state agent cannot run, fall back to the old LLM image-plan behavior.
+            # (Still save a CSV so downstream pipelines work.)
+            print(f"[warn] TextObjectStateAgent unavailable; falling back to generate_image_plan: {type(e).__name__}: {e}")
+            image_descriptions = self.generate_image_plan(steps)
+
         # Ensure same length (truncate to shorter)
-        min_len = min(len(steps), len(image_prompts))
+        min_len = min(len(steps), len(image_descriptions))
         steps = steps[:min_len]
-        image_prompts = image_prompts[:min_len]
-        
+        image_descriptions = image_descriptions[:min_len]
+
         print(f"Generated {len(steps)} steps")
-        pd.DataFrame({"text_plans": steps, "image descriptions": image_prompts}).to_csv(f"{output_folder}/text_plans.csv")
-        return image_prompts
+        pd.DataFrame({"text_plans": steps, "image descriptions": image_descriptions}).to_csv(f"{output_folder}/text_plans.csv", index=False)
+        return image_descriptions
 
 if __name__ == "__main__":
     ip = InstructionPlanner(COMPASS_API_KEY)

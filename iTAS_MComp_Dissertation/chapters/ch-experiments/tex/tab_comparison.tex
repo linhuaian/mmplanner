@@ -1,0 +1,23 @@
+% Please add the following required packages to your document preamble:
+% \usepackage{multirow}
+% Please add the following required packages to your document preamble:
+% \usepackage{multirow}
+\newcommand{\improv}[1]{\small\textcolor{red}{#1}}
+\begin{table}[!h]
+\centering
+\scalebox{1}{
+\begin{tabular}{lcccccccc}
+\toprule
+ & SD & FD & TC & Acc &  Edit &  \multicolumn{3}{l}{F1 @ \{10, 25, 50\}} \\ \cmidrule(lr){2-4} \cmidrule(lr){5-9}
+%Finetune & - & - & - & 17.4 & 29.9 & 30.0 & 26.5 & 20.9 \\
+Exemplar & \cmark & \xmark & \xmark & 27.8 & 35.6 & 36.1 & 31.7 & 24.3 \\
+Ours$_\text{random}$  & \cmark & \cmark & \xmark  & 32.9 & 38.9 & 40.0 & 35.6 & 27.2 \\
+Ours$_\text{static}$   & \cmark & \xmark & \xmark & 37.9 & 42.9 & 43.8 & 38.9 & 29.0 \\
+\rowcolor{gray!30}\cellcolor{white}
+Ours     & \cmark & \cmark & \cmark  & \textbf{41.8} & \textbf{45.0} & \textbf{47.0} & \textbf{41.5} & \textbf{32.0} \\ \bottomrule
+\end{tabular}}
+\caption{Ablation study on the components in TCA.
+% `SD' denotes the diveristy between segments of the same action, `FD' denotes the diversity between the frames within the same segment, and `TC' denotes the temporal coherence of the segments. Optimal results are obtained when considering both diversity and temporal coherence. Gray row indicates the final setup used in this paper.
+}
+\label{tab:effectiveness}
+\end{table}

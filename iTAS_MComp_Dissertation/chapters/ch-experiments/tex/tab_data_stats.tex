@@ -1,0 +1,18 @@
+% Please add the following required packages to your document preamble:
+% \usepackage{multirow}
+% \usepackage[table,xcdraw]{xcolor}
+% Beamer presentation requires \usepackage{colortbl} instead of \usepackage[table,xcdraw]{xcolor}
+\begin{table}[!h]
+\begin{tabular}{lccccc}
+\toprule
+Dataset    & \# Videos & Duration & \# Activities & \# Actions & Domain \\ \cmidrule(lr){1-1} \cmidrule(lr){2-6}
+Breakfast~\cite{kuehne2014language}  & 1712     & 77h      &  10          &  48       & Cooking \\ 
+CrossTask~\cite{zhukov2019crosstask}* & 2140     & 170h     &  14          &  112      & Mixed \\ 
+YTI~\cite{alayrac2016unsupervised}       & 150      & 7h       &  5           &  46       & Mixed \\ \bottomrule
+\end{tabular}
+\footnotesize{*CrossTask processed as described in~\cref{sub:crosstak}.}
+\caption{
+    Summary of iTAS Datasets. 
+}
+\label{tab:dataset_stats}
+\end{table}

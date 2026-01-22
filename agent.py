@@ -31,6 +31,7 @@ class Agent:
         }
         self.image_generator = None
         self.image_selector = None
+        self.text_object_state_agent = None
 
     def reset(self, task: str):
         self.memory = {
@@ -50,16 +51,8 @@ class Agent:
             self.memory["objects"][name]["state"] = state
             self.memory["objects"][name]["history"].append((step, state))
 
-    def get_states_at_step(self, step_num: int) -> dict:
-        states = {}
-        for obj in self.memory.get("object_transitions", []):
-            current_state = None
-            for s in obj["states"]:
-                if s["step"] <= step_num:
-                    current_state = s["state"]
-            if current_state:
-                states[obj["name"]] = current_state
-        return states
+    # NOTE: Object/state ground-truth for image descriptions is now produced by TextObjectStateAgent
+    # inside InstructionPlanner.generate_text_plan(), and saved under the task output folder.
 
     def generate_images(self, prompt: str, k: int = 2) -> list:
         if self.image_generator is None:
@@ -83,33 +76,6 @@ class Agent:
         return self.image_selector.select_best_image(prev_image, candidates, step=step)
 
     # ==================== LLM CALLS ====================
-
-    def extract_object_transitions(self, task: str, steps: list) -> list:
-        steps_text = "\n".join([f"{i+1}. {s}" for i, s in enumerate(steps)])
-        
-        prompt = f"""
-Analyze this task and extract ALL objects with their state transitions.
-
-Task: {task}
-Steps:
-{steps_text}
-
-Return JSON:
-{{
-    "objects": [
-        {{"name": "object", "states": [{{"step": 1, "state": "initial"}}, {{"step": 3, "state": "changed"}}]}}
-    ]
-}}
-"""
-        response = self.client.chat.completions.create(
-            messages=[{"role": "user", "content": prompt}],
-            model="gpt-4o",
-            temperature=0.1,
-            extra_headers={"Provider": "OpenAI"},
-            response_format={"type": "json_object"}
-        )
-        data = json.loads(response.choices[0].message.content)
-        return data.get("objects", [])
 
     def generate_image_prompt(self, step_num: int, step_desc: str, expected_states: dict) -> str:
         prompt = f"""
@@ -143,26 +109,19 @@ Return JSON: {{"image_prompt": "detailed prompt showing objects in correct state
         
         # Generate steps using instruction planner
         print("\n[1] Generating step plan...")
+        # InstructionPlanner now uses TextObjectStateAgent internally to:
+        # - save ground_truth_object_phrases_text.json / ground_truth_object_states_text.json
+        # - produce SD-friendly image descriptions grounded in those phrases
         image_prompts = self.instruction_planner.generate_text_plan(task, output_folder=output_folder)
         
-        # Extract object transitions
-        print("\n[2] Extracting object states...")
-        self.memory["object_transitions"] = self.extract_object_transitions(task, image_prompts)
-        for obj in self.memory["object_transitions"]:
-            print(f"  {obj['name']}: {[s['state'] for s in obj['states']]}")
-        
         # Process each step
-        print("\n[3] Generating images...")
+        print("\n[2] Generating images...")
         prev_image = None
         
         for i, prompt in enumerate(image_prompts):
             step_num = i + 1
             self.memory["current_step"] = step_num
             print(f"\nStep {step_num}: {prompt}...")
-            
-            # Get expected states
-            expected_states = self.get_states_at_step(step_num)
-            print(f"  States: {expected_states}")
             
             # Generate and select image
             candidates = self.generate_images(prompt, k=k)

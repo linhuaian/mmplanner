@@ -1,0 +1,54 @@
+%%% enable "DoubleSided" for paper-based submission, i.e. printing, and 
+%%% remove it for the final submission, i.e. electronic thesis
+%\newcommand*{\DoubleSided}{} 
+
+\input{_global_settings.tex}
+\newcommand{\GD}[1]{\textcolor{blue}{GD: #1}}
+\begin{document}
+
+\title{Coherent Temporal Synthesis for Incremental Action Segmentation}
+
+\author{Hans Christian Chua Golong}
+\prevdegrees{%
+  B.S., Ateneo De Manila University}
+\degree{Master of Computing}
+\field{Artificial Intelligence}
+\degreeyear{2024}
+\supervisor{Associate Professor Angela Yingjie Yao}
+
+% only involve the examiners in the final submission
+\examiners{%
+  Associate Professor Angela Yingjie Yao \\
+  Assistant Professor Mike Zheng Shou}
+
+\maketitle
+
+\declaredate{30 April 2024}
+% \declaresign{\RootPicDir /signature.jpg} % remove this if you prefer to sign physically
+\declarationpage
+
+\begin{frontmatter}
+  % \dedicate{To my delicious friends}
+  \input{chapters/acknowledgments.tex}
+  \tableofcontents 
+  \input{chapters/abstract.tex}
+  \listoffigures
+  \listoftables
+\end{frontmatter}
+
+\input{chapters/ch-introduction/main}
+\input{chapters/ch-lit_review/main}
+\input{chapters/ch-method/main}
+\input{chapters/ch-experiments/main}
+\input{chapters/ch-conclusion/main}
+
+\bookmarksetup{startatroot}
+\printbibliography[heading=bibintoc]
+
+\appendix
+% \input{chapters/ap-recipes.tex}
+% \input{chapters/ap-ingredients.tex}
+
+% \input{chapters/ap-publication.tex} % optional to include your publication list
+
+\end{document}

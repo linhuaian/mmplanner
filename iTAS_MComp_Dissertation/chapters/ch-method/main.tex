@@ -1,0 +1,124 @@
+\chapter{Proposed Methodology}
+\label{ch:meth}
+
+\section{Problem Formulation}
+
+\subsection{Temporal Action Segmentation}
+
+An untrimmed video $x^{1:T} = ( x^1, \ldots, x^T )$ is given, where $T$ is the total number of frames of the video. $x^t$ is the feature vector of the frame at time $t$. A model $\mathcal{M}$ is trained to separate the video into a set of $N$ contiguous and non-overlapping action segments:
+\begin{gather}\label{eq:segment}
+    \mathbf{s}_{1:N} = (s_1,s_2,...,s_N), \quad \text{where }   
+    s_n = (a_n, t_n, \ell_n), \\
+    \text{s.t.} \qquad t_{n+1} = t_n+\ell_n, \nonumber
+\end{gather}
+where $a_n \in \mathcal{A}$ is the action class label assigned to the segment chosen from $\mathcal{A}$ predefined classes, $t_n$ denotes the starting timestamp of the segment, and $l_n$ is the segment duration. $t_n$ adheres to a precise temporal sequence from the preceding segment. This formulation of the problem is more commonly seen in approaches dealing with weak forms of supervision~\cite{richard2018nnviterbi,richard2018actionset,li2019weak}.
+
+Alternatively, the training objective of the model can be reformulated as a per-frame classification task. The model $\mathcal{M}$ can be trained to produce:
+\begin{equation}
+    y^{1:T} = ( y^1, \ldots, y^T ),
+\end{equation}
+where $y^t \in \mathcal{A}$ is the predicted action label for frame at time $t$. Most of the recent works~\cite{yi2021asformer,ding2022leveraging,singhania2023c2f,liu2023diffact,li2023ms++} adopt this per-frame formulation of the task. Our approach similarly produces per-frame action class predictions.
+
+The segmentation model $\mathcal{M}$ is trained with a frame-wise cross-entropy loss:
+\begin{equation}\label{eq:cls}
+    \mathcal{L}_{\text{cls}}(x,y) =  \frac{1}{T} \sum_t -\log(p^t(y^t)), 
+\end{equation}
+where $p^t \in \mathbb{R}^{A}$ is the estimated action probabilty for the frame $x^t$. In addition, a smoothing loss is imposed to ensure smooth transitions between consecutive frames:
+\begin{equation}\label{eq:tmse}
+    \mathcal{L}_{\text{sm}}(x,y) = \frac{1}{TA}\sum_{t,a}\tilde{\Delta}_{t,a}^2, \;\;
+    \tilde{\Delta}_{t,a} = \begin{cases}
+    \Delta_{t,a}\kern-0.8em &:\! \Delta_{t,a} \le \tau\\
+    \tau \kern-0.8em&:\! \text{otherwise}
+    \end{cases},
+\end{equation}
+\begin{equation}
+    \Delta_{t,a} = \left|\log p^t(a) - \log p^{t-1}(a)\right|.\nonumber
+\end{equation}
+$\tau$ is conventionally set to 4, as per~\cite{farha2019ms}. The full training loss is written as the combination of the above two, balanced by hyperparameter $\lambda$:
+\begin{equation}\label{eq:tas}
+    \mathcal{L}_{\text{tas}} = \mathcal{L}_{\text{cls}} + \lambda\cdot \mathcal{L}_{\text{sm}}.
+\end{equation}
+
+\subsection{Class Incremental Learning}
+
+In class incremental learning, classes are gradually introduced to model $\mathcal{M}$ through a series of $B$ tasks $\{ \mathcal{T}_1, \ldots, \mathcal{T}_B \}$. Each task $\mathcal{T}_b$ represents a distinct incremental step, comprising a set of $n_b$ training instances denoted as $\{(x_i, y_i)\}_{i=1}^{n_b}$. Here, $x_i$ represents an instance associated with class $y_i\in\mathbf{Y}_b$, where $\mathbf{Y}_b$ is the class set for task $b$. Importantly, access to the training data in $\mathcal{T}_b$ is restricted to current training task $b$ only. The model cannot access data from previous or future tasks. It must acquire knowledge from the current task while preserving knowledge from the past tasks. The performance of an incrementally trained model is evaluated over all seen classes, i.e., $\mathcal{Y}_B=\mathbf{Y}_1\cup \ldots \mathbf{Y}_B$. Standard CIL assumes non-overlapping classes in different tasks ($\mathbf{Y}_b\cap\mathbf{Y}_b'=\varnothing$ for $b\neq b'$). Blurry CIL is an alternate configuration that allows for classes between tasks to overlap~\cite{koh2022online,bang2021rainbow,bang2022online}. 
+
+In data replay, a model is allowed to revisit exemplars from prior tasks via a replay buffer. The replay buffer, also known as an exemplar set, is an extra collection of instances from the previous tasks $\hat{\mathcal{T}}_{1:b} = \{(x_{b'}, y_{b'})\}_{b'=1}^{b-1},\, y_{b'} \in \mathcal{Y}_{b-1}$. The exemplars can either be previously seen training samples~\cite{rebuffi2017icarl}, constructed prototypes~\cite{iscen2020memory}, or generated samples~\cite{shin2017continual,xiang2019incremental}. The training instances in the joint set $\mathcal{T}_b \cup \hat{\mathcal{T}}_{1:b}$ can then be utilized to update model $\mathcal{M}$ with new classes from task $\mathcal{T}_b$ while retaining previous knowledge via exemplars in $\hat{\mathcal{T}}_{1:b}$. 
+
+\subsection{Incremental Temporal Action Segmentation}
+
+In incremental temporal action segmentation (iTAS), a segmentation model $\mathcal{M}$ is continuously updated by introducing it to new action classes at each incremental step. Since procedural videos from the same activity (e.g. preparing \emph{``coffee''}) share a common set of interrelated actions (e.g. \emph{`pour coffee'}, \emph{`pour milk'}), we consider each procedural activity as an incremental task $b$, and the actions within each activity as class labels $\mathbf{Y}_b$. The segmentation model $\mathcal{M}$ learns to segment videos from various incremental activities. To address the high spatial cost of naively storing previous video training samples in the exemplar set, our approach introduces a novel generative data replay approach for iTAS featuring a temporally coherent action model.
+
+\section{Generative Data Replay with a Temporally Coherent Action Model}
+
+\subsection{Temporally Coherent Action (TCA) Model}
+
+Generative models, such as Variational Autoencoders (VAE)~\cite{kingma2013auto} and Generative Adversarial Networks~\cite{goodfellow2014generative} are powerful tools for learning efficient representations of data with a fixed model size. Additionally, they are easy to extend to a conditional form to generate conditioned outputs. These properties make them a good fit for the purpose of generating diverse action segments for data replay. 
+
+In this work, we employ a conditional VAE~\cite{sohn2015cvae} to model the actions. Other generative models are also feasible, but conditional VAEs offer a good trade-off between model size, expressiveness, and data efficiency for learning. In a conditional VAE model, an encoder maps an input frame feature $x$ and the conditioning action class label $a$ to a probability distribution $q_{\phi}(z|x, a)$ over the latent space, where $z$ is the latent variable. The decoder maps a sample from latent space $z$ and the conditioning information back to obtain a reconstruction of the input $\hat{x}= p_{\theta}(x|z, a)$. $\phi,\theta$ are learnable network parameters of the encoder and decoder, respectively. The overall loss function is a combination of the reconstruction term and the KL divergence regularization term, written as:
+\begin{equation*}\label{eq:cvae}
+    \mathcal{L}_{\text{cVAE}} = \underbrace{\mathbb{E}_z \log p_{\theta}(x|z,a)}_{\text{reconstruction}} - \underbrace{\text{D}_{\text{KL}}(q_{\phi}(z|x,a)||p(z))}_{\text{regularization}}
+\end{equation*}
+The second term regularizes the latent space by a prior $p(z)$ on the approximate posterior distribution; typically, the prior is a Gaussian distribution. 
+
+\input{chapters/ch-method/tex/fig_tca}
+
+While the above action model captures the diversity of action segments, it ignores any temporal coherence since the action frames are modeled independently. To that end, we introduce a coherence variable to model the temporal transition between feature frames within an action segment. This work formulates the coherence variable as the relative temporal progression of a frame within the action. For the $i$-th frame in an action segment of duration $\ell$, the coherence variable $c_i$ is defined as: 
+\begin{equation}\label{eq:covar}
+    c_i = (i-1)/(\ell-1), \;\text{and}\; c_i \in [0, 1].
+\end{equation}
+Incorporating the relative progression as the coherence condition helps the model build up knowledge of the feature continuity following the progression of actions. In this work, we follow~\cite{becattini2020done} and assume the action progression to be linear.  
+
+Adding upon~\cref{eq:cvae}, the training loss for our Temporally Coherent Action (TCA) model is written as:
+\begin{equation}\label{eq:tca}
+    \mathcal{L}_{\text{TCA}} = \underbrace{\mathbb{E}_z \log p_{\theta}(x|z,a,c)}_{\mathcal{L}_{\text{recon}}} - \underbrace{\text{D}_{\text{KL}}(q_{\phi}(z|x,a,c)||p(z))}_{\mathcal{L}_{\text{reg}}}.
+\end{equation}
+\cref{fig:tca} illustrates the TCA model. For each frame in a segment, the encoder $\mathcal{E}(x,a,c) = q_{\phi}(z|x,a,c)$ takes in the feature $x$, one-hot action label $a$, and its coherence variable $c$, while the decoder $\mathcal{D}(z,a,c) = p_{\theta}(x|z,a,c)$ samples a latent variable $z$ with reparametrization: $z = \mu + \sigma \odot \epsilon, \epsilon \sim \mathcal{N}(\mathbf{0},\mathbf{1})$ and uses the same $a,c$ for reconstruction.
+
+
+\subsection{Replay Data Generation}
+ 
+Our replay data generation procedure is top-down. We first sample the sequential structure of action segments to generate. We then populate the action segments with temporally coherent frames from the TCA model.
+
+\subsubsection{Sequential Structure Sampling}
+
+In order to sample the sequential structure of the video to generate, we refer back to the segment-level interpretation provided by~\cref{eq:segment}. A procedural video can be summarized as an ordered sequence of actions, each with varying duration. Such a high-level structure helps guide the data generation process. The (symbolic) sequences require negligible storage, so we keep all the sequences from the training data and directly sample from the set during generation. Specifically, we establish a candidate pool to store all action sequence order and their duration $\mathbf{S}_b=\{\mathbf{s}_i\}_{i=1}^{n_{b}},\,\mathbf{s}_i \in \mathcal{T}_{b}$. During the data generation stage, we employ a uniform sampling strategy on $\mathbf{S}_b$:
+\begin{equation}\label{eq:sample}
+    \hat{\mathbf{s}}_b \sim \text{Uniform}(\mathbf{S}_{b}).
+\end{equation}
+
+\subsubsection{Action Segment Generation.} 
+
+\input{chapters/ch-method/tex/fig_gen}
+
+The sampled sequential structure $\hat{\mathbf{s}} = \{(a_n, t_n, \ell_n)\}_{n=1}^{\hat{N}}$ is then utilized in the segment generation process, as illustrated in~\cref{fig:tca_gen}.  
+For each sampled $(a_n, t_n, \ell_n)$, our TCA model generates the frame-wise features for the segment using:
+\begin{equation}\label{eq:segfeat}
+   \hat{x}_i = p_{\theta}(x|z_n, a_n, c_i),\; \text{and}\; {i \in [1,...,\ell]}.
+\end{equation}
+Here, we fix $z_n$ across all frames for the given action $a_n$ and vary the coherence variable $c_i$, following~\cref{eq:covar}. This ensures temporal coherence in feature transition within the segment. The process is repeated for every segment, and these generated segment features $\hat{\mathbf{x}}_n$ are concatenated according to their timestamps $t_n$ to compose the procedural video:
+\begin{equation}\label{eq:gen}
+    \hat{v} = \text{concat}(\hat{\mathbf{x}}_1, ..., \hat{\mathbf{x}}_{\hat{N}}).
+\end{equation}
+
+\subsubsection{Discussion} 
+
+An intuitive interpretation of the latent and conditioning variables in~\cref{eq:segfeat} can be as follows: $z$ governs the overall scene context, $a$ regulates the action semantics, and $c$ manages the temporal progression of the action features. Since the action label $a$ is predefined for each segment, it is kept consistent. 
+
+Other generation options for the action segments can be achieved by manipulating the latent variable $z$ and the conditioning coherence variable $c$. We use this flexibility to conduct an ablation study in \cref{subsec:feat_div_temp_c} regarding the necessity of feature diversity and temporal coherence in video data replay.
+
+We ensure temporal coherence within segments but not across action transitions because boundary frames, as indicated in~\cite{souri2022robust,ding2022leveraging}, are ambiguous and may not be conducive to learning the segmentation model.
+
+\subsection{iTAS Training}
+
+\input{chapters/ch-method/tex/fig_archi}
+
+We commence by training the segmentation model $\mathcal{M}$ (\cref{subfig:standard}) and our TCA model ($\mathcal{E}_1, \mathcal{D}_1$) with the initial task data $\mathcal{T}_1$. As new task data $\mathcal{T}_b$ becomes available, we create replay video data $\hat{v}$ for all previous tasks $[1\!:\!b)$ utilizing their corresponding TCA decoders $\mathcal{D}$. This process yields a total of $M$ videos denoted as $\hat{\mathcal{T}}_{1:b}$.
+To train the segmentation model $\mathcal{M}$, we combine this generated data with the real data from $\mathcal{T}_b$ to serve as the training set, as shown in~\cref{subfig:incremental}. Through this, the segmentation model can revisit the previous tasks to mitigate catastrophic forgetting while learning new tasks. The incremental learning objective at task $b$ is as follows: 
+\begin{equation}\label{eq:iltas}
+    \mathcal{L}^b_{\text{iltas}} = \underset{(x,y)\in\mathcal{T}_b\cup \hat{\mathcal{T}}_{1:b}}{\mathcal{L}_{\text{cls}}(x,y)} + \lambda \cdot \underset{(x,y)\in\mathcal{T}_b\cup \hat{\mathcal{T}}_{1:b}}{\mathcal{L}_{\text{sm}}(x,y)},
+\end{equation}
+we set $\lambda=0.15$, following~\cite{farha2019ms}. Concurrently, as iterating through the above steps, we train our TCA model $(\mathcal{E}_b, \mathcal{D}_b)$ every time new video data from task $b$ arrives. The overall incremental learning procedure is summarized in~\cref{alg:train}.
+
+\input{chapters/ch-method/tex/alg_train}
+

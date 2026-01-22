@@ -1,0 +1,131 @@
+\chapter{Introduction}
+
+Video understanding is one of the hallmark tasks in computer vision. Designing systems that can infer information from videos have exciting applications in surveillance, quality assurance, robotics, virtual assistants, and many other areas. % A variety of tasks fall under the umbrella of video understanding. Video classification.... Video summarization... Video Question and Answering... \cite{REFER TO A VIDEO UNDERSTANDING SURVEY MAYBE}
+
+Action recognition~\cite{kongg2022human} is one of the foremost tasks in video understanding. Action recognition systems aim to take a video and identify the action demonstrated. Many action recognition methods, however, require the videos to be short pre-trimmed clips, while real-world videos are usually minutes long or come in the form of streams.
+
+Hoping to overcome this limitation, temporal action segmentation aims to take an untrimmed video and divide it into a sequence of action segments, each of which is then associated with an action label~\cite{ding_temporal_2023}. The approaches used in the field have benefited significantly from the success of deep learning from image, language, and speech domains. However, even with recent developments, we discover that incremental learning, a learning paradigm where a model is incrementally updated with new information, has not yet been explored in the field. 
+
+In this work, we define an incremental learning setup for temporal action segmentation and propose a novel generative data replay approach for incremental procedural video understanding.
+
+\section{Background}
+% What is TAS. What are some of the important terms in TAS?
+
+\input{chapters/ch-introduction/tex/fig_tas}
+Temporal action segmentation (TAS) is a challenging task of video understanding that deals with untrimmed goal-oriented procedural videos. The objective in TAS is two-fold. It aims to separate the procedural video into contiguous action segments. Then, it aims to assign an action label to each segment (see~\cref{fig:tas_ov}). In the parlance of TAS, a procedural video demonstrates a \emph{complex activity} (e.g. \emph{``coffee''}), which is composed of a sequence of \emph{actions} (e.g. \emph{``pour coffee''}, \emph{``pour milk''})~\cite{ding_temporal_2023}. Although videos belonging the same complex activity have a similar goal to achieve, the individual actions taken to accomplish the goal do not necessarily have to the same. Actions may be done in a different sequence order, and some actions may be skipped entirely.
+
+% What are the challenges in solving the problem that approaches need to address in TAS
+%\cite{ITS CHALLENGES COME IN THE FORM OF... REFER TO FIRST C.LEA PAPER OR THE SURVEY PAPER}
+
+While several methods have been proposed for TAS, the models developed are static and need to be retrained completely once new information is available. Retraining from scratch incurs significant time and computational costs. Past data may not always be available for retraining as well, due to physical storage limitations or privacy concerns~\cite{delange_cil_survey_2022}. TAS algorithms need to be designed with the ability to update models with new data.
+
+\input{chapters/ch-introduction/tex/fig_il}
+
+% What is IL? What is the problem we are solving in IL? What is the vocabulary? What are the challenges in IL that approaches need to address?
+Incremental learning (IL)~\cite{delange_cil_survey_2022} is the field dedicated to giving models the capability to learn on new data without forgetting previous knowledge. In IL, datasets are divided into \emph{tasks}, and the model is incrementally trained on one task at a time without access to data from other tasks (see~\cref{fig:il_ov}). Naively training models in this manner causes a phenomenon called catastrophic forgetting~\cite{french1999catastrophic}, where a model will perform poorly on past tasks after being trained on a new task. Thus, IL approaches are developed to mitigating the catastrophic forgetting problem. 
+
+\section{Incremental Temporal Action Segmentation (iTAS)}
+
+Just as humans constantly learn from everyday experiences, we need to design models with the ability to incrementally learn from new data. Towards this goal, we introduce the incremental temporal action segmentation (iTAS) task. In iTAS, the dataset is split into activities (e.g. \emph{``coffee''}), where each activity is composed of a set of actions (e.g. \emph{``pour coffee''}, \emph{``pour milk''}). At each incremental step, the model is trained on a different activity and has no access to the data of prior or future activities. The TAS model is forced to learn new action classes while retaining previous knowledge.
+
+% While incremental learning in computer vision was initially restricted to the image domain, it has recently been explored in the video domain for action recognition~\cite{villa2022vclimb,alssum2023just,park2021class,pei2022learning}, where many of the approaches have used data replay. Data replay is an effective and commonly used technique in incremental learning~\cite{xiang2019incremental,shin2017continual,bang2021rainbow} that mitigates catastrophic forgetting by re-exposing the model to previously encountered data samples. In incremental action recognition, many works elect to create replay data by storing frames for each video clip. 
+
+% However, since existing recognition models accept sparse frames as input, like 8 or 16 frames for TSN~\cite{wang2016temporal} and TSM~\cite{lin2019tsm}, keeping an exemplar set for each action clip does not overly strain the memory allocation. Additionally, because of the a strong static bias towards scene context~\cite{li2018resound} in standard action recognition datasets, it is possible to achieve comparable performance storing either entire segments, a few frames~\cite{villa2022vclimb}, or even a single frame~\cite{alssum2023just}, without the need for explicit temporal modeling. % As a result, most techniques save exemplar frames and mirror the practices from the image domain while giving less attention to developing video-specific data replay techniques.
+
+% We advocate exploring data replay strategies for incremental video understanding with iTAS.
+
+While incremental learning in computer vision was initially restricted to images, it has recently been explored in the video domain with incremental action recognition~\cite{villa2022vclimb,alssum2023just,park2021class,pei2022learning}, where many approaches use data replay. Data replay~\cite{rebuffi2017icarl} is an intuitive IL approach that prevents catastrophic forgetting by providing the model with samples of prior tasks for rehearsal. The samples, also called exemplars, of prior tasks are stored in a replay buffer with a fixed memory size.
+
+However, since existing action recognition models~\cite{wang2016temporal,lin2019tsm} accept sparse frames as input, keeping an exemplar set for each action clip does not overly strain the memory allocation. Additionally, because of a strong static bias towards scene context~\cite{li2018resound} in standard action recognition datasets~\cite{carreira2017quo,soomro2012ucf101}, comparable performance can be achieved by storing entire segments, a few frames~\cite{villa2022vclimb}, or even a single frame~\cite{alssum2023just} for data replay, all without needing explicit temporal modeling. % As a result, most techniques save exemplar frames and mirror the practices from the image domain while giving less attention to developing video-specific data replay techniques.
+
+We advocate exploring data replay strategies for incremental video understanding with iTAS. The static bias is less pronounced in TAS since actions in a sequence are likely to share a common background, and videos in TAS also need to retain a high temporal resolution to allow for accurate frame-wise predictions.
+
+\section{Research Challenges}
+
+\subsection{Incremental Learning in the Video Domain}
+\label{sub:challenge_il_vid}
+
+% In computer vision, incremental learning has mostly been explored in the image domain~\cite{xiang2019incremental,shin2017continual,bang2021rainbow}, where data replay has been one of the most common and effective techniques. Data replay~\cite{rebuffi2017icarl} is an intuitive incremental learning approach that prevents catastrophic forgetting by providing the model with samples of prior tasks for rehearsal. The samples, also called examplars, of prior tasks are stored in a replay buffer with a fixed memory size.
+
+Following prior works, our approach uses data replay for incremental video understanding. Compared to images, videos require significantly more memory to store, making adapting image-based approaches directly to videos a challenge. 
+
+The difficulty is emphasized in iTAS. TAS models operate on full-resolution frame-by-frame video inputs and produce action predictions at the same level of temporal granularity. Naively storing frame exemplars in proportion to the video's duration, even downsampled, would impose a significant memory burden. Using sub-sampling to store sparse frames as exemplars per video would result in a loss of temporal coherence in the natural progression of actions, which would harm the fine-grained frame-wise predictions.
+
+To address the problem of needing full-resolution replay data without incurring significant spatial cost, we elect to use a generative model to create samples for data replay. Our design choice is motivated by the the model’s capacity to learn efficient data representations with a fixed model size while producing diverse outputs of arbitrary lengths.
+
+\subsection{Temporally Coherent Video Generation}
+
+While generative data replay appears to be a straightforward solution for iTAS, video generation is in itself an open problem. For the generated videos to be useful for training, two key conditions need to be met; each synthesized frame needs to have plausibly come from the real-world distribution, and adjacent frames need to be temporally coherent.  
+
+In our approach, we tackle this challenge using a conditional variational auto-encoder (cVAE) \cite{sohn2015cvae}. We introduce a temporal coherence variable, which provides the relative temporal position of the frame to generate, and integrate it into the cVAE model to generate temporally coherent video samples. We empirically show that our approach achieves superior results compared to baselines. We also conduct ablation studies to verify the effectiveness of the temporal coherence variable on maintaining temporal coherence and demonstrate the importance of using temporally coherent samples for training.% Unlike generative approaches for image tasks~\cite{hayes2020remind,lesort2019generative,shin2017continual}, our model incorporates a conditioning variable to account for the unique temporal coherence of videos. The coherence variable, defined as the relative progression within an action, assists the model in capturing the evolution of action features over time. 
+
+
+\section{Contributions and Publication}
+
+\noindent Our work presents the following contributions:
+\begin{enumerate}
+    \item To the best of our knowledge, we are the first to introduce the incremental action segmentation task, working with procedural videos. This is a natural fit for the development of intelligent assistants which learn complex tasks and activities in the real world in an incremental manner.
+    \item We propose to model actions with generative models and use the models to generate diverse replay data. The proposed generative data replay bypasses the trade-off problem in frame-exemplar storing approaches. 
+    \item We introduce a temporal coherence variable to help the generative model learn action feature evolution and produce temporally coherent action segments in replay video generation.
+    \item Experiments on three procedural benchmarks show that our approach can effectively mitigate catastrophic forgetting for incrementally learned action segmentation models. 
+\end{enumerate}
+
+\noindent This thesis is based on a joint work with Dr. Guodong Ding. The paper from this project has been accepted into CVPR 2024:
+\begin{itemize}
+    \item Guodong Ding, \textbf{Hans Golong}, and Angela Yao, ``Coherent Temporal Synthesis for Incremental Action Segmentation'', in \emph{2024 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)}, 2024.
+\end{itemize} % Section 3 and Section 4.1 to Section 4.5 are from the paper and done jointly.
+
+\section{Outline}
+This thesis will be organized as follows. In~\cref{ch:lit_rev}, we conduct a review of existing literature. We will discuss previous work in temporal action segmentation and incremental learning. In~\cref{ch:meth}, we will discuss our generative data replay approach and detail our proposed Temporally Coherent Action (TCA) model. In~\cref{ch:exp}, we will present our experimental results and discuss the findings from our ablation studies. Finally, we close in~\cref{ch:conc} with a summary of our work and discuss potential directions for future research.
+
+
+% PREV DRAFT OF CHALLENGE OF IL IN VIDEO %
+%However, techniques developed for images are not directly transferable into the video domain. Existing methods do not take into consideration the unique properties of video \cite{WHY IL TECHNIQUES CANT BE APPLIED TO VIDEOS DIRECTLY} They do not take into account the temporal dynamics of objects in videos nor do they take into consideration the memory size of videos.
+
+% Data replay is an effective and commonly used technique in image incremental learning~\cite{xiang2019incremental,shin2017continual,aljundi2019gradient,bang2021rainbow}. Data replay mitigates catastrophic forgetting by re-exposing the model to previously encountered data samples. Previous works either retain a subset of the original training samples~\cite{hou2019learning,lopez2017gradient,rebuffi2017icarl} or learn a generative model on previous training data to later generate surrogate training samples~\cite{hayes2020remind,lesort2019generative,shin2017continual}. 
+% A recent shift of incremental learning from static images to dynamic videos has brought about the application of data replay into the video domain~\cite{villa2022vclimb,alssum2023just,park2021class}. However, this transition has been limited to direct implementations, with less emphasis on videos' unique temporal properties. 
+
+%  Other incremental learning techniques will be conducted in \ref{sec:cil_techniques}. 
+
+% For our approach, we have used the technique of data replay, specifically generative data replay, to prevent catastrophic forgetting. Generative data replay~\cite{shin2017continual} is a variant of the technique that uses generated samples. Our design choice is motivated by the fact that storing entire videos for rehearsal incurs a significant spatial cost. With generative data replay, we constrain the spatial cost to the size of storing the generative models. Additionally, the generative nature of the approach also allows for greater feature diversity that we show to aid in performance.
+% The replay data generation is top-down. First, a replay video is defined by its sequential structure, including action sequences and segment durations. Subsequently, the generative model generates features for each action segment. Finally, these generated segments are concatenated to form a complete replay video.
+
+% Much of the adoption of incremental learning into computer vision has been in the image domain. Although it has recently been explored in the video domain with incremental action recognition~\cite{villa2022vclimb,alssum2023just,park2021class,pei2022learning}, there are challenges unique to temporal action segmentation that current approaches fail to address.
+
+% In action recognition, because of the a strong static bias towards scene context~\cite{li2018resound}, current approaches can store either entire segments, a few frames~\cite{villa2022vclimb}, or even a single frame~\cite{alssum2023just} and achieve comparable performance without explicit temporal modeling. Additionally, because recognition models~\cite{wang2016temporal,lin2019tsm} accept sparse frames as input, current approaches can keep a sparse exemplar set for each action clip without overly straining the allocated memory.
+
+% In TAS, the static bias is less prominent, since different actions within a sequence often share a common background. Thus, approaches for it need to model the temporal dynamics. 
+
+% For our approach, we have used the technique of data replay, specifically generative data replay, to prevent catastrophic forgetting. Generative data replay~\cite{shin2017continual} is a variant of the technique that uses generated samples. Our design choice is motivated by the fact that storing entire videos for rehearsal incurs a significant spatial cost. With generative data replay, we constrain the spatial cost to the size of storing the generative models. Additionally, the generative nature of the approach also allows for greater feature diversity that we show to aid in performance.
+% The replay data generation is top-down. First, a replay video is defined by its sequential structure, including action sequences and segment durations. Subsequently, the generative model generates features for each action segment. Finally, these generated segments are concatenated to form a complete replay video.
+
+% Thus, emphasising the importance of temporal modeling in video data replay. TAS also operates with full-resolution frame-by-frame inputs and produces outputs at the same level of temporal granularity. The extended temporal span requires more capacity in the replay memory compared to shorter, trimmed action clips. 
+
+
+% for each action clip does not overly strain the memory allocation. Additionally, 
+
+% [What do you mean? Well, incremental AR gets away with storing less becuase it needs less frames and has static bias. iTAS can't store less frames and need accurate temporal modelling. ]
+
+% [Challenge: iTAS needs full temporal resolution, which is a challenge memory wise. And we can't use sub sampling becuase we need the fine-details and temporal dynamics]
+
+% [Thus we advocate for a generative approach.]
+
+%Much of the adoption of incremental learning into computer vision has been in the image domain. However, techniques developed for images are not directly transferable into the video domain. Existing methods do not take into consideration the unique properties of video \cite{WHY IL TECHNIQUES CANT BE APPLIED TO VIDEOS DIRECTLY}% They do not take into account the temporal dynamics of objects in videos nor do they take into consideration the memory size of videos.
+
+%Data replay~\cite{rebuffi2017icarl} is an intuitive incremental learning approach that prevents catastrophic forgetting by providing the model with samples of prior tasks for rehearsal. Other incremental learning techniques will be conducted in \ref{sec:cil_techniques}. 
+
+% For our approach, we have used the technique of data replay, specifically generative data replay, to prevent catastrophic forgetting. Generative data replay~\cite{shin2017continual} is a variant of the technique that uses generated samples. Our design choice is motivated by the fact that storing entire videos for rehearsal incurs a significant spatial cost. With generative data replay, we constrain the spatial cost to the size of storing the generative models. Additionally, the generative nature of the approach also allows for greater feature diversity that we show to aid in performance.
+% The replay data generation is top-down. First, a replay video is defined by its sequential structure, including action sequences and segment durations. Subsequently, the generative model generates features for each action segment. Finally, these generated segments are concatenated to form a complete replay video.
+
+% Storing frame-exemplars for videos requires a balance between \textit{dense temporal sampling} and \textit{memory diversity}~\cite{villa2022vclimb,alssum2023just}. It is a trade-off between storing fewer complete videos or more incomplete ones within a given memory budget. 
+
+% With the additional equiremements of the TAS task, we are presented with additional challenges to address.
+
+% First, temporal modeling of the object motion and interaction is more needed in TAS since actions in TAS share the same background, making the static bias less prominent. This samples in the data replay must be able to cal
+
+% Second, TAS operates with full-resolution frame-by-frame inputs and produces outputs at the same level of temporal granularity. 
+% The extended temporal span requires more capacity in the replay memory compared to shorter, trimmed action clips. Storing frame exemplars in proportion to the video's duration, even downsampled, imposes a significant memory burden. Sub-sampling approaches also results in a loss of temporal coherence in the natural progression of actions, which can harm TAS metrics.
+
+% From these challenges, we are motivated to use a generative model to create rehearsal data. Generative models are able to learn efficient data representations with a fixed model size while producing diverse outputs of arbitrary lengths, making them more memory-efficient than storing video instances and more capable of producing high quality samples than downsampled ones.
+
+% This is motivated by the model's 

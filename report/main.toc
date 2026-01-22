@@ -1,0 +1,36 @@
+\babel@toc {english}{}\relax 
+\contentsline {chapter}{Acknowledgments}{i}{section*.1}%
+\contentsline {chapter}{Abstract}{iv}{section*.4}%
+\contentsline {chapter}{List of Figures}{v}{section*.5}%
+\contentsline {chapter}{List of Tables}{vi}{section*.7}%
+\contentsline {chapter}{\chapternumberline {1}Introduction}{1}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Overview}{1}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Approach}{1}{section.1.2}%
+\contentsline {section}{\numberline {1.3}Notes}{1}{section.1.3}%
+\contentsline {chapter}{\chapternumberline {2}Related Work}{2}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Overview}{2}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Approach}{2}{section.2.2}%
+\contentsline {section}{\numberline {2.3}Notes}{2}{section.2.3}%
+\contentsline {chapter}{\chapternumberline {3}Method: Agent Feedback Loop}{3}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Overview}{3}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Approach}{3}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Notes}{3}{section.3.3}%
+\contentsline {chapter}{\chapternumberline {4}Experiments}{4}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Overview}{4}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Approach}{4}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Notes}{4}{section.4.3}%
+\contentsline {section}{\numberline {4.4}CLIP-based State Consistency Evaluation}{4}{section.4.4}%
+\contentsline {subsection}{\numberline {4.4.1}How To Build A Pc}{5}{subsection.4.4.1}%
+\contentsline {subsection}{\numberline {4.4.2}How To Change Car Tyre}{7}{subsection.4.4.2}%
+\contentsline {subsection}{\numberline {4.4.3}How To Cook A Fried Egg}{8}{subsection.4.4.3}%
+\contentsline {subsection}{\numberline {4.4.4}How To Cook A Pasta}{9}{subsection.4.4.4}%
+\contentsline {subsection}{\numberline {4.4.5}How To Decorate Chrismas Tree}{10}{subsection.4.4.5}%
+\contentsline {subsection}{\numberline {4.4.6}How To Do Cpr}{12}{subsection.4.4.6}%
+\contentsline {subsection}{\numberline {4.4.7}How To Fold A Paper Crane}{13}{subsection.4.4.7}%
+\contentsline {subsection}{\numberline {4.4.8}How To Install Curtain}{14}{subsection.4.4.8}%
+\contentsline {subsection}{\numberline {4.4.9}How To Make Cheesy Garlic Pull-Apart Bread}{14}{subsection.4.4.9}%
+\contentsline {subsection}{\numberline {4.4.10}How To Raise A Child}{16}{subsection.4.4.10}%
+\contentsline {chapter}{\chapternumberline {5}Conclusion}{18}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Overview}{18}{section.5.1}%
+\contentsline {section}{\numberline {5.2}Approach}{18}{section.5.2}%
+\contentsline {section}{\numberline {5.3}Notes}{18}{section.5.3}%

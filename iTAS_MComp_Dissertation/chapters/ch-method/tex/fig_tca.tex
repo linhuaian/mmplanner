@@ -1,0 +1,55 @@
+\begin{figure}
+    \centering
+    \begin{overpic}[width=\linewidth]{chapters/ch-method/img/tca.pdf}
+
+    % inputs
+    \put(5.3,37.4){\footnotesize $1$}
+    \put(25.5,37.4){\footnotesize $\ell_1$}
+    \put(0.7,33){\footnotesize $\mathbf{x}_1$}
+    \put(0.7,27.5){\footnotesize $\mathbf{a}_1$}
+    \put(0.7,23.5){\footnotesize $\mathbf{c}_1$}
+    \put(5.3,23.4){\footnotesize $0$}
+    \put(25.9,23.4){\footnotesize \textcolor{white}{$1$}}
+    \put(9,24.5){\footnotesize ...}
+    \put(20,24.5){\footnotesize \textcolor{white}{...}}
+    
+    \put(15,19){\rotatebox{90}{\footnotesize ...}}
+
+
+    \put(5.3,18.4){\footnotesize $1$}
+    \put(31.5,18.4){\footnotesize $\ell_N$}
+    \put(0.3,14){\footnotesize $\mathbf{x}_N$}
+    \put(0.3,8.5){\footnotesize $\mathbf{a}_N$}
+    \put(0.3,4.5){\footnotesize $\mathbf{c}_N$}
+    \put(5.3,4.4){\footnotesize $0$}
+    \put(31.8,4.4){\footnotesize \textcolor{white}{$1$}}
+    \put(12.3,5.5){\footnotesize ...}
+    \put(23,5.5){\footnotesize \textcolor{white}{...}}
+    %\put(2.5,37.5){\footnotesize Inputs}
+  
+    % encoder
+    \put(39,14){\footnotesize $a$}
+    \put(39,6.5){\footnotesize $c$}
+    \put(39,27){\footnotesize $x$}
+    \put(59,22){\footnotesize $\mu$}
+    \put(59,16.5){\footnotesize $\sigma$}
+    %\put(43,19){ $\mathcal{E}\!=\!q_{\theta}$}
+    \put(44,19){\footnotesize Encoder}
+    \put(54.5,28){\footnotesize (reparametrization)}
+    \put(67.5, 24.5){$\epsilon$}
+
+    \put(62.5,36.5){\footnotesize $\mathcal{L}_{\text{recon}}$}
+    %decoder
+    \put(96.5,27){\footnotesize $\hat{x}$}
+    \put(74.5,10){\footnotesize $a$}
+    \put(74.5,3){\footnotesize $c$}
+    \put(74.5,20){\footnotesize $z$}
+    %\put(79,19.5){ $\mathcal{D}\!=\!p_{\phi}$}
+    \put(80,19.5){\footnotesize Decoder}
+    \put(61.3,7.5){\footnotesize $\mathcal{L}_{\text{reg}}$}
+    \end{overpic}
+    \caption{Temporally Coherent Action (TCA) model. 
+    %The input to the encoder is the concatenation of the frame feature $x$, action label $a$ and coherence variable $c$. The decoder samples a latent variable with reparametrization: $z = \mu + \sigma \odot \epsilon, \epsilon \sim \mathcal{N}(\mathbf{0},\mathbf{1})$, and outputs $\hat{x}$ as the reconstruction of the original feature. 
+    }
+    \label{fig:tca}
+\end{figure}

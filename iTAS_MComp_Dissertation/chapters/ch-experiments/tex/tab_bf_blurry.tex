@@ -1,0 +1,20 @@
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
+% \usepackage{multirow}
+\begin{table*}[!h]
+\centering
+\scalebox{0.9}{
+\begin{tabular}{lcccccccccc}
+\toprule
+\multirow{2}{*}{} & \multicolumn{5}{c}{MSTCN~\cite{farha2019ms}} & \multicolumn{5}{c}{ASFormer~\cite{yi2021asformer}} \\ \cmidrule(lr){2-6} \cmidrule(lr){7-11} 
+ & Acc & Edit & \multicolumn{3}{c}{F1 @ \{10, 25, 50\}} & Acc & Edit & \multicolumn{3}{c}{F1 @ \{10, 25, 50\}} \\ \cmidrule(lr){2-6} \cmidrule(lr){7-11}
+Finetune & 15.8 & 29.7 & 30.0 & 26.0 & 19.1 & 15.5 & 30.2 & 30.6 & 26.4 & 19.6 \\
+Exemplar~\cite{alssum2023just} & 25.0 & 34.0 & 34.9 & 30.2 & 22.3 & 24.4 & 35.6 & 37.2 & 32.9 & 24.9 \\
+\rowcolor{gray!30}
+Ours & \textbf{38.5} & \textbf{43.3} & \textbf{44.9} & \textbf{39.5} & \textbf{29.7} & \textbf{44.2} & \textbf{51.2} & \textbf{53.0} & \textbf{47.6} & \textbf{36.8} \\
+\textcolor{gray}{Original} & \textcolor{gray}{48.5} & \textcolor{gray}{53.4} & \textcolor{gray}{55.1} & \textcolor{gray}{49.4} & \textcolor{gray}{37.9} & \textcolor{gray}{53.5} & \textcolor{gray}{57.6} & \textcolor{gray}{59.9} & \textcolor{gray}{54.5} & \textcolor{gray}{43.2} \\ \bottomrule
+\end{tabular}}
+
+\caption{Performance comparsion on Breakfast with the blurry task boundary.}
+\label{tab:blurry}
+\end{table*}

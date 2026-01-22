@@ -1,0 +1,51 @@
+%%% enable "DoubleSided" for paper-based submission, i.e. printing, and
+%%% remove it for the final submission, i.e. electronic thesis
+%\newcommand*{\DoubleSided}{}
+
+\input{_global_settings.tex}
+
+\begin{document}
+
+\title{Zeroshot State-Consistent Image Generation via Agent Feedback}
+
+% Fill these metadata fields as needed for your Overleaf submission
+\author{Lin Huaian}
+\prevdegrees{%
+  B.S., National University of Singapore}
+\degree{Master of Computer Science}
+\field{Artificial Intelligence}
+\degreeyear{2026}
+\supervisor{Associate Professor Angela Yingjie Yao\\Dr.\ Guodong Ding}
+
+% Examiners (same as supervisors, per your request)
+\examiners{%
+  Associate Professor Angela Yingjie Yao \\
+  Dr.\ Guodong Ding}
+
+\maketitle
+
+% Optional
+%\declaredate{9 January 2026}
+%\declarationpage
+
+\begin{frontmatter}
+  \input{chapters/acknowledgments.tex}
+  \tableofcontents
+  \input{chapters/abstract.tex}
+  \listoffigures
+  \listoftables
+\end{frontmatter}
+
+\input{chapters/ch-introduction/main}
+\input{chapters/ch-lit_review/main}
+\input{chapters/ch-method/main}
+\input{chapters/ch-experiments/main}
+\input{chapters/ch-conclusion/main}
+
+\bookmarksetup{startatroot}
+\printbibliography[heading=bibintoc]
+
+\appendix
+% Add appendices here.
+
+\end{document}

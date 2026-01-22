@@ -79,6 +79,40 @@ class GPTEvaluator:
             return pd.read_csv(csv_path)
         return None
 
+    def load_object_state_phrases(self, task_folder: str):
+        """
+        Optional: text-derived expected object/state ground truth produced by TextObjectStateAgent.
+        Stored at: ground_truth_object_phrases_text.json
+        """
+        path = os.path.join(task_folder, "ground_truth_object_phrases_text.json")
+        if not os.path.exists(path):
+            return None
+        try:
+            with open(path, "r") as f:
+                data = json.load(f)
+            if str(data.get("source", "")).strip().lower() not in {"text", ""}:
+                return None
+            return data.get("by_step", None)
+        except Exception:
+            return None
+
+    def load_object_states(self, task_folder: str):
+        """
+        Optional: text-derived expected structured object states produced by TextObjectStateAgent.
+        Stored at: ground_truth_object_states_text.json
+        """
+        path = os.path.join(task_folder, "ground_truth_object_states_text.json")
+        if not os.path.exists(path):
+            return None
+        try:
+            with open(path, "r") as f:
+                data = json.load(f)
+            if str(data.get("source", "")).strip().lower() not in {"text", ""}:
+                return None
+            return data.get("by_step", None)
+        except Exception:
+            return None
+
     def build_evaluation_prompt(self, task_name: str, text_plans=None) -> str:
         task_description = task_name.replace("_", " ").title()
         
@@ -87,10 +121,15 @@ class GPTEvaluator:
             steps = text_plans["text_plans"].tolist() if "text_plans" in text_plans.columns else []
             if steps:
                 steps_context = "\n\nThe intended steps are:\n" + "\n".join([f"{i+1}. {s}" for i, s in enumerate(steps)])
+
+        # Optional: add image-derived object/state context (phrases + structured objects)
+        # NOTE: task folder isn't available in this method; injected in evaluate_task via string replace.
+        obj_state_context = ""
         
         prompt = f"""
 You are an expert evaluator for AI-generated image sequences. You are evaluating a series of images that depict the steps of: "{task_description}".
 {steps_context}
+{obj_state_context}
 
 Please evaluate these images as a SEQUENCE (viewing them in order from first to last) on the following 4 dimensions. For each dimension, provide:
 1. A score from 0-100
@@ -173,6 +212,72 @@ Return ONLY a JSON object with this exact structure:
         
         text_plans = self.load_text_plans(task_folder)
         prompt = self.build_evaluation_prompt(task_name, text_plans)
+
+        phrases_by_step = self.load_object_state_phrases(task_folder)
+        states_by_step = self.load_object_states(task_folder)
+
+        used_expected_state_context = False
+        if phrases_by_step or states_by_step:
+            used_expected_state_context = True
+            # Insert right before the evaluation dimensions
+            lines = []
+            lines.append("\n\nAdditional context (text-derived expected object/state ground truth, extracted from the step plan):")
+            lines.append("Interpretation note: Image Step 1 corresponds to step_0.png, Image Step 2 to step_1.png, etc.")
+
+            # Normalize keys and print in image-step order (0-based keys expected)
+            keys = []
+            if isinstance(phrases_by_step, dict):
+                keys.extend(list(phrases_by_step.keys()))
+            if isinstance(states_by_step, dict):
+                keys.extend(list(states_by_step.keys()))
+            # unique
+            keys = list({str(k) for k in keys})
+            try:
+                keys.sort(key=lambda x: int(x))
+            except Exception:
+                keys.sort()
+
+            for k in keys:
+                # Convert 0-based step index -> Image Step number
+                try:
+                    idx0 = int(k)
+                except Exception:
+                    continue
+                image_step = idx0 + 1
+
+                # Phrases
+                if isinstance(phrases_by_step, dict):
+                    phr = phrases_by_step.get(k, phrases_by_step.get(idx0, []))
+                    if isinstance(phr, list) and phr:
+                        phr = [str(p).strip() for p in phr if str(p).strip()]
+                        phr = phr[:5]
+                        lines.append(f"- Image Step {image_step} (step_{idx0}.png) phrases: " + "; ".join(phr))
+
+                # Structured objects
+                if isinstance(states_by_step, dict):
+                    objs = states_by_step.get(k, states_by_step.get(idx0, []))
+                    if isinstance(objs, list) and objs:
+                        # Keep it short to avoid bloating the prompt
+                        objs = [o for o in objs if isinstance(o, dict)]
+                        objs = objs[:8]
+                        if objs:
+                            obj_kvs = []
+                            for o in objs:
+                                name = str(o.get("name", "")).strip()
+                                state = str(o.get("state", "")).strip()
+                                if name and state:
+                                    obj_kvs.append(f"{name}={state}")
+                            lines.append(
+                                f"  Image Step {image_step} objects: "
+                                + "; ".join(obj_kvs)
+                            )
+
+            lines.append(
+                "\nYou should use this context as a reference for expected object identity/state, but still judge based on the images. "
+                "If the context contradicts what is visible, call it out explicitly."
+            )
+
+            prompt = prompt.replace("\n\n## Evaluation Dimensions:", "\n".join(lines) + "\n\n## Evaluation Dimensions:")
         
         content = [{"type": "text", "text": prompt}]
         
@@ -212,6 +317,7 @@ Return ONLY a JSON object with this exact structure:
             
             result["task_name"] = task_name
             result["num_steps"] = len(images)
+            result["used_expected_state_context"] = used_expected_state_context
             
             print(f"  Done - Weighted Score: {result['weighted_total']:.1f}/100")
             return result
@@ -226,12 +332,15 @@ Return ONLY a JSON object with this exact structure:
 
     def generate_report(self, task_folder: str, result: dict) -> str:
         task_title = result.get('task_name', 'Unknown').replace('_', ' ').title()
+        used_ctx = result.get("used_expected_state_context", False)
         
         report = f"""# GPT Evaluation Report
 
 ## Task: {task_title}
 
 ### Overall Score: {result.get('weighted_total', 0):.1f} / 100
+
+### Text-derived expected object/state context used: {"Yes" if used_ctx else "No"}
 
 ---
 

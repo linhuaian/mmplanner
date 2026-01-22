@@ -1,0 +1,60 @@
+\begin{figure*}[!t]
+    \centering
+    \subfigure[Standard TAS]{\label{subfig:standard}
+    \begin{overpic}[width=0.24\textwidth]{img/seg.pdf} 
+    \put(35,21){\footnotesize Inputs: $\mathbf{x}$}
+    \put(33,50.5){\footnotesize Logits: $\mathbf{p}$}
+    \put(33,93.5){\footnotesize Labels: $\mathbf{y}$}
+    \put(40,72.5){\footnotesize $\mathcal{L}_{\text{sm}}$}
+    \put(1.4,72.5){\footnotesize $\mathcal{L}_{\text{cls}}$}
+    \put(32.5,39.5){\footnotesize  TAS Model }
+    \put(40,33){\footnotesize $\mathcal{M}$}
+    \end{overpic}
+    }\hspace{0.5em}
+    \subfigure[Incremental TAS with TCA Replay]{\label{subfig:incremental}
+    \begin{overpic}[width=0.7\textwidth]{img/archi.pdf}  
+
+    % sequence 1:b-1
+    \put(3.5,4.5){\footnotesize $\mathbf{S}_1$}
+    \put(3.5,11.7){\footnotesize $\mathbf{S}_2$}
+    \put(2.8,18.9){\footnotesize $\mathbf{S}_{b\!-\!1}$}
+
+    % decoders 1:b-1
+    \put(15.7,8){\footnotesize $\mathcal{D}_1$}
+    \put(15.7,15.5){\footnotesize $\mathcal{D}_2$}
+    \put(15,22.7){\footnotesize $\mathcal{D}_{b\!-\!1}$}
+
+    % tca b
+    \put(17,31.5){$\mathcal{E}_{b}$}
+    \put(5,31.5){$\mathcal{D}_{b}$}
+    \put(14,39.5){\footnotesize $\epsilon$}
+    \put(2,39.5){\footnotesize TCA}
+    \put(9.3,26.9){\footnotesize (cache)}
+
+    % training data
+    \put(30,39.5){\footnotesize Current Task Data $\mathcal{T}_b$}
+    \put(47,30){\footnotesize ...}
+    \put(27,23){\footnotesize Generated Replay Data $\hat{\mathcal{T}}_{1:b}$}
+    \put(47,20){\footnotesize ...}
+    \put(45,13){\footnotesize ...}
+    
+
+    % segementation
+    \put(63, 26.5){\footnotesize \rotatebox{270}{TAS Model}}
+    \put(60, 22.5){\footnotesize \rotatebox{270}{$\mathcal{M}$}}
+
+    % incremental
+    \put(61.5,39.5){\footnotesize Task}
+    \put(61.5,37.2){\footnotesize $b\!-\!1$}
+    \put(58,4.5){\footnotesize Task}
+    \put(58,2.3){\footnotesize $b\!+\!1$}
+
+    % output
+    \put(75,39.5){\footnotesize Segmentation Results}
+    \put(92,20){\footnotesize ...}
+    \put(90,13){\footnotesize ...}
+    \put(92,30){\footnotesize ...}
+    \end{overpic}}
+    \caption{Learning schemes for temporal action segmentation. (a) Standard TAS and (b) Incremental TAS with TCA at task $b$. }
+    \label{fig:archi}
+\end{figure*}

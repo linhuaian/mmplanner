@@ -1,0 +1,43 @@
+\begin{figure}
+    \centering
+    \begin{overpic}[width=1.02\linewidth]{chapters/ch-method/img/tca_gen.pdf}
+
+    \put(-1,34.5){\footnotesize Sequence:}
+    
+    \put(1.3,28){\footnotesize ($a_1$, $\ell_1$)}
+    \put(22.5,33){\footnotesize $z_1$}
+    \put(26.5,30){\footnotesize $\mathbf{z}_1$}
+    \put(26.5,24.5){\footnotesize $\mathbf{a}_1$}
+    \put(26.5,20.5){\footnotesize $\mathbf{c}_1$}
+    \put(31.5,33.5){\footnotesize $1$}
+    \put(49,33.5){\footnotesize $\ell_1$}
+    \put(73,26){\footnotesize $\hat{\mathbf{x}}_1$}
+    \put(19.5,15.5){\rotatebox{90}{\footnotesize (sample)}}
+    \put(7,16){\rotatebox{90}{\footnotesize ...}}
+
+    \put(36,15.5){\rotatebox{90}{\footnotesize ...}}
+    \put(31.5,15){\footnotesize $1$}
+    \put(45,15.5){\footnotesize $\ell_N$}
+    \put(75,16){\rotatebox{90}{\footnotesize ...}}
+    \put(78,16.5){\footnotesize (concatenate)}
+    \put(1.3,6){\footnotesize ($a_N$, $\ell_N$)}
+    \put(18.5,8){\footnotesize $z_N$}
+    \put(26.5,11){\footnotesize $\mathbf{z}_N$}
+    \put(26.5,6){\footnotesize $\mathbf{a}_N$}
+    \put(26.5,2){\footnotesize $\mathbf{c}_N$}
+    \put(73,9){\footnotesize $\hat{\mathbf{x}}_N$}
+    \put(71,34.5){\footnotesize Features:}
+    \put(56.5,16.5){\footnotesize Decoder}
+    \put(78.3,13){\footnotesize $1$}
+    \put(92,13.5){\footnotesize $\ell_N$}
+    \put(78.3,30){\footnotesize $1$}
+    \put(95,30.5){\footnotesize $\ell_1$}
+    \put(78.3,3.4){\footnotesize $t_N$}
+    \put(78.3,21){\footnotesize $t_1$}
+
+    \end{overpic}
+    \caption{Replay Data Generation. 
+    %In each segment, the action variable $a$ remains consistent, and a common latent variable $z\sim \mathcal{N}(\mathbf{0},\mathbf{1})$ is sampled for all frames. The resulting features $\hat{\mathbf{x}}$ by the decoder exhibit continuity due to the gradual change in the coherence variable $c$. The segments are then concatenated following their starting timestamp $t$ to form a complete video.
+    }
+    \label{fig:tca_gen}
+\end{figure}
