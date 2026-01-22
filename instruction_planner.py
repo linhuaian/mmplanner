@@ -26,31 +26,34 @@ def _join_natural(items: list[str]) -> str:
     return ", ".join(items[:-1]) + f", and {items[-1]}"
 
 
-def _compose_sd_prompt(step_text: str, object_phrases: list[str]) -> str:
+def _compose_sd_prompt(step_text: str, object_phrases: list[str], *, max_chars: int = 220) -> str:
     """
-    Turn fragmented object-state phrases into one continuous SD-friendly prompt.
-    This is deterministic (no extra LLM call) and meant to be broadly applicable across tasks.
+    Turn fragmented object-state phrases into one SHORT, continuous SD-friendly prompt.
+    Deterministic (no extra LLM call), broadly applicable, and length-capped for SD.
     """
     step = (step_text or "").strip()
     # Remove leading numbering like "1." if present.
     if step[:3].strip().endswith(".") and step[:2].strip(" .").isdigit():
         step = step.split(".", 1)[-1].strip()
+    step = step.rstrip(".")
 
     objs = [_strip_leading_article(p) for p in (object_phrases or [])]
     objs = [o for o in objs if o]
-    objs_clause = _join_natural(objs[:8])  # keep it bounded
+    objs_clause = _join_natural(objs[:5])  # keep it tight
 
-    # A single coherent, photorealistic prompt with composition cues.
+    # Single sentence, compact style.
     if objs_clause:
-        return (
-            f"Photorealistic, high-detail scene illustrating: {step}. "
-            f"In-frame: {objs_clause}. "
-            f"Natural lighting, shallow depth of field, sharp focus on the main objects, documentary-style photo."
-        ).strip()
-    return (
-        f"Photorealistic, high-detail scene illustrating: {step}. "
-        f"Natural lighting, shallow depth of field, sharp focus, documentary-style photo."
-    ).strip()
+        prompt = f"Photorealistic photo: {step}, with {objs_clause}. Natural light, sharp focus."
+    else:
+        prompt = f"Photorealistic photo: {step}. Natural light, sharp focus."
+
+    prompt = " ".join(prompt.split())  # normalize whitespace
+    if len(prompt) <= max_chars:
+        return prompt
+
+    # Trim gracefully to max_chars.
+    trimmed = prompt[: max_chars - 1].rstrip(" ,.;:-")
+    return trimmed + "…"
 
 
 class InstructionPlanner:
@@ -162,6 +165,7 @@ class InstructionPlanner:
                     expected_states=None,
                     num_phrases=5,
                     verbose=bool(verbose),
+                    store_trace=True,
                 )
                 if step_state.phrases:
                     # Compose a single continuous SD prompt from the phrases.

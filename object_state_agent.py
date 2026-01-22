@@ -161,6 +161,7 @@ class StepSuggestionAgent(_BaseLLMAgent):
         prev_phrases: List[str],
         prev_objects: List[Dict[str, str]],
         num_phrases: int,
+        trace_events: Optional[List[Dict[str, Any]]] = None,
     ) -> Tuple[List[str], List[Dict[str, str]], str]:
         extract_prompt = f"""
 You are a state-tracking agent for procedural instructions (TEXT ONLY; do not assume any image input).
@@ -206,9 +207,35 @@ Return JSON ONLY:
 """.strip()
 
         try:
+            if trace_events is not None:
+                trace_events.append(
+                    {
+                        "stage": "suggestion",
+                        "step_index": step_index,
+                        "prompt": extract_prompt,
+                    }
+                )
             extract = self._chat_json(extract_prompt, max_tokens=500)
-            return self._normalize_step_payload(extract, num_phrases=num_phrases)
+            phrases, objects, notes = self._normalize_step_payload(extract, num_phrases=num_phrases)
+            if trace_events is not None:
+                trace_events.append(
+                    {
+                        "stage": "suggestion",
+                        "step_index": step_index,
+                        "response_raw": extract,
+                        "response_normalized": {"phrases": phrases, "objects": objects, "notes": notes},
+                    }
+                )
+            return phrases, objects, notes
         except Exception as e:
+            if trace_events is not None:
+                trace_events.append(
+                    {
+                        "stage": "suggestion",
+                        "step_index": step_index,
+                        "error": {"type": type(e).__name__, "message": str(e)},
+                    }
+                )
             return self._fallback_from_text(
                 step_text=step_text,
                 expected_states=expected_states,
@@ -236,6 +263,9 @@ class StepCritiqueAgent(_BaseLLMAgent):
         cur_objects: List[Dict[str, str]],
         cur_notes: str,
         num_phrases: int,
+        round_index: Optional[int] = None,
+        total_rounds: Optional[int] = None,
+        trace_events: Optional[List[Dict[str, Any]]] = None,
     ) -> Tuple[List[str], List[Dict[str, str]], str]:
         critique_prompt_tmpl = """
 You are a consistency critic for procedural state tracking (TEXT ONLY).
@@ -290,8 +320,30 @@ Return JSON ONLY with the same schema:
             cur_notes=cur_notes,
         )
 
+        if trace_events is not None:
+            trace_events.append(
+                {
+                    "stage": "critique",
+                    "step_index": step_index,
+                    "round": round_index,
+                    "total_rounds": total_rounds,
+                    "prompt": critique_prompt,
+                }
+            )
         revised = self._chat_json(critique_prompt, max_tokens=600)
-        return self._normalize_step_payload(revised, num_phrases=num_phrases)
+        phrases, objects, notes = self._normalize_step_payload(revised, num_phrases=num_phrases)
+        if trace_events is not None:
+            trace_events.append(
+                {
+                    "stage": "critique",
+                    "step_index": step_index,
+                    "round": round_index,
+                    "total_rounds": total_rounds,
+                    "response_raw": revised,
+                    "response_normalized": {"phrases": phrases, "objects": objects, "notes": notes},
+                }
+            )
+        return phrases, objects, notes
 
 
 class TextObjectStateAgent:
@@ -314,7 +366,7 @@ class TextObjectStateAgent:
         # - critique/revision
         self.suggester = StepSuggestionAgent(api_key=self.api_key, model=self.model)
         self.critic = StepCritiqueAgent(api_key=self.api_key, model=self.model)
-        self.memory: Dict[str, Any] = {"by_step": {}}
+        self.memory: Dict[str, Any] = {"by_step": {}, "trace_by_step": {}}
 
     def analyze_step_text(
         self,
@@ -326,6 +378,7 @@ class TextObjectStateAgent:
         num_phrases: int = 5,
         critique_rounds: int = 3,
         verbose: bool = False,
+        store_trace: bool = True,
     ) -> StepState:
         """
         Produce expected object/state phrases purely from step text (no image).
@@ -336,6 +389,8 @@ class TextObjectStateAgent:
         prev_objects = prev.get("objects", []) if isinstance(prev, dict) else []
         prev_phrases = prev.get("phrases", []) if isinstance(prev, dict) else []
 
+        trace_events: Optional[List[Dict[str, Any]]] = [] if store_trace else None
+
         # ---- Pass 1: Extract expected states from text ----
         phrases_1, objects_1, notes_1 = self.suggester.suggest(
             task=task,
@@ -345,6 +400,7 @@ class TextObjectStateAgent:
             prev_phrases=prev_phrases,
             prev_objects=prev_objects,
             num_phrases=num_phrases,
+            trace_events=trace_events,
         )
         if verbose:
             _safe_print("\n--- SuggestionAgent output ---")
@@ -370,6 +426,9 @@ class TextObjectStateAgent:
                     cur_objects=cur_objects,
                     cur_notes=cur_notes,
                     num_phrases=num_phrases,
+                    round_index=r + 1,
+                    total_rounds=critique_rounds,
+                    trace_events=trace_events,
                 )
                 if verbose:
                     _safe_print(f"\n--- CritiqueAgent output (round {r+1}/{critique_rounds}) ---")
@@ -379,6 +438,16 @@ class TextObjectStateAgent:
                 cur_notes = (cur_notes + f" | critique_round_{r+1}_failed: {type(e).__name__}").strip()
                 if verbose:
                     _safe_print(f"\n--- CritiqueAgent failed (round {r+1}/{critique_rounds}): {type(e).__name__} ---")
+                if trace_events is not None:
+                    trace_events.append(
+                        {
+                            "stage": "critique",
+                            "step_index": step_index,
+                            "round": r + 1,
+                            "total_rounds": critique_rounds,
+                            "error": {"type": type(e).__name__, "message": str(e)},
+                        }
+                    )
                 break
 
         step_state = StepState(step=step_index, phrases=cur_phrases, objects=cur_objects, notes=cur_notes)
@@ -388,6 +457,8 @@ class TextObjectStateAgent:
             "objects": step_state.objects,
             "notes": step_state.notes,
         }
+        if trace_events is not None:
+            self.memory["trace_by_step"][step_index] = trace_events
         return step_state
 
     def save_task_text(self, task_folder: str, *, num_phrases: int = 5) -> None:
@@ -406,6 +477,16 @@ class TextObjectStateAgent:
             json.dumps({"source": "text", "by_step": objects_by_step}, indent=2),
             encoding="utf-8",
         )
+
+        trace_by_step = self.memory.get("trace_by_step", {}) or {}
+        if trace_by_step:
+            trace_by_step_str = {
+                str(k): (v if isinstance(v, list) else []) for k, v in trace_by_step.items()
+            }
+            (folder / "ground_truth_object_state_trace_text.json").write_text(
+                json.dumps({"source": "text", "by_step": trace_by_step_str}, indent=2),
+                encoding="utf-8",
+            )
 
 
 def main():
