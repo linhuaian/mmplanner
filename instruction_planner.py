@@ -7,6 +7,52 @@ from dotenv import load_dotenv
 load_dotenv() 
 COMPASS_API_KEY = os.getenv("COMPASS_API_KEY")
 
+def _strip_leading_article(s: str) -> str:
+    s = (s or "").strip()
+    for art in ("a ", "an ", "the "):
+        if s.lower().startswith(art):
+            return s[len(art):].strip()
+    return s
+
+
+def _join_natural(items: list[str]) -> str:
+    items = [x for x in (items or []) if x]
+    if not items:
+        return ""
+    if len(items) == 1:
+        return items[0]
+    if len(items) == 2:
+        return f"{items[0]} and {items[1]}"
+    return ", ".join(items[:-1]) + f", and {items[-1]}"
+
+
+def _compose_sd_prompt(step_text: str, object_phrases: list[str]) -> str:
+    """
+    Turn fragmented object-state phrases into one continuous SD-friendly prompt.
+    This is deterministic (no extra LLM call) and meant to be broadly applicable across tasks.
+    """
+    step = (step_text or "").strip()
+    # Remove leading numbering like "1." if present.
+    if step[:3].strip().endswith(".") and step[:2].strip(" .").isdigit():
+        step = step.split(".", 1)[-1].strip()
+
+    objs = [_strip_leading_article(p) for p in (object_phrases or [])]
+    objs = [o for o in objs if o]
+    objs_clause = _join_natural(objs[:8])  # keep it bounded
+
+    # A single coherent, photorealistic prompt with composition cues.
+    if objs_clause:
+        return (
+            f"Photorealistic, high-detail scene illustrating: {step}. "
+            f"In-frame: {objs_clause}. "
+            f"Natural lighting, shallow depth of field, sharp focus on the main objects, documentary-style photo."
+        ).strip()
+    return (
+        f"Photorealistic, high-detail scene illustrating: {step}. "
+        f"Natural lighting, shallow depth of field, sharp focus, documentary-style photo."
+    ).strip()
+
+
 class InstructionPlanner:
     def __init__(self, api_key):
         self.api_key = api_key
@@ -118,11 +164,11 @@ class InstructionPlanner:
                     verbose=bool(verbose),
                 )
                 if step_state.phrases:
-                    # Use phrases directly as the image description backbone.
-                    image_descriptions.append(", ".join(step_state.phrases))
+                    # Compose a single continuous SD prompt from the phrases.
+                    image_descriptions.append(_compose_sd_prompt(step_text, step_state.phrases))
                 else:
                     # Fallback: if no phrases, use the step text so SD still has something to render.
-                    image_descriptions.append(step_text)
+                    image_descriptions.append(_compose_sd_prompt(step_text, []))
 
             state_agent.save_task_text(output_folder, num_phrases=5)
         except Exception as e:
