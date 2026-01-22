@@ -13,14 +13,10 @@ print("OPENAI_TOKEN =", OPENAI_TOKEN)
 
 
 if __name__ == "__main__":
-    k = 2
+    k = 10
 
     how_to_tasks = [
-    "how to fold a paper crane",
-    "how to bake sourdough bread",
-    "how to tie a Windsor knot",
-    "how to solve a 3x3 Rubik's cube",
-    "how to grow an avocado tree from a pit"]
+     "how to build a PC?"]
     for task in how_to_tasks:
         
         out_folder = f"./output/{task.replace('?', '').replace(' ', '_').lower()}"
@@ -31,8 +27,12 @@ if __name__ == "__main__":
         if not os.path.exists(intermediate_output_folder):
             os.mkdir(intermediate_output_folder)
 
+        print("Planning task....")
+
         ip = InstructionPlanner(OPENAI_TOKEN)
-        plan = ip.generate_text_plan(task, output_folder=out_folder)
+
+        if not os.path.exists(os.path.join(out_folder, "text_plans.csv")):
+            plan = ip.generate_text_plan(task, output_folder=out_folder)
 
         sd = StableDiffusionImageGenerator() 
 

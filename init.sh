@@ -21,4 +21,4 @@ pip uninstall apex -y
 pip install peft==0.17.0
 pip install timm==0.9.16
 
-export HF_TOKEN="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"
+export HF_TOKEN=$HF_TOKEN
