@@ -107,14 +107,20 @@ Task:
 
 Clarification:
 - "missing_in_image" means: the prompt mentions an item/state, but it is NOT present/visible in the image.
-- "extra_in_image" means: the image contains a salient item/state NOT mentioned in the prompt (worth adding).
-- The revised prompt should describe ONLY what is visible in the image (do NOT include things that are not visible).
+  This is a GENERATION FAILURE. Do NOT remove the missing item from the revised prompt.W
+  Instead, rewrite/strengthen the prompt to make the model include it (be more explicit, specify placement/visibility).
+- "extra_in_image" means: the image contains a salient item/state NOT mentioned in the prompt (worth adding),
+  but only add it if it doesn't conflict with the intended prompt content.
 
 Rules for revised_prompt:
 - MUST be short (<= {max_chars} characters).
 - MUST describe only visible items/states (no camera/style words).
 - MUST be ONE continuous sentence (not a fragmented list).
 - MUST keep task context when provided by starting with: "{style_prefix}<visual objects/states>."
+- For any missing_in_image items, KEEP them in the revised prompt and make them more likely to appear by:
+  - adding "visible" / "clearly visible"
+  - specifying simple spatial relations ("on the table", "next to", "in a bowl", "in the pan")
+  - removing ambiguity (use concrete nouns)
 
 Return JSON ONLY:
 {{
