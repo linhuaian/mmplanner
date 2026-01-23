@@ -51,7 +51,16 @@ class ImagePromptCritiqueAgent:
         Returns dict:
           {
             "ok": bool,                     # True if prompt already matches well enough
-            "issues": ["..."],              # short list
+            "issues": ["..."],              # short list (human-readable summary)
+            "issues_detailed": [            # structured, actionable mismatches
+              {
+                "type": "missing_in_image|extra_in_image|wrong_state|wrong_count|wrong_attribute|wrong_context",
+                "prompt_item": "<thing mentioned in prompt (if applicable)>",
+                "image_evidence": "<what is actually visible>",
+                "fix": "<what to change in prompt>",
+                "confidence": 0.0
+              }
+            ],
             "revised_prompt": "..."         # short, continuous, task-grounded prompt
           }
         """
@@ -96,6 +105,11 @@ Task:
 1) Decide if the image matches the prompt well enough (OK=true/false).
 2) If not OK, rewrite the prompt to better match what is ACTUALLY visible in the image.
 
+Clarification:
+- "missing_in_image" means: the prompt mentions an item/state, but it is NOT present/visible in the image.
+- "extra_in_image" means: the image contains a salient item/state NOT mentioned in the prompt (worth adding).
+- The revised prompt should describe ONLY what is visible in the image (do NOT include things that are not visible).
+
 Rules for revised_prompt:
 - MUST be short (<= {max_chars} characters).
 - MUST describe only visible items/states (no camera/style words).
@@ -105,7 +119,16 @@ Rules for revised_prompt:
 Return JSON ONLY:
 {{
   "ok": true/false,
-  "issues": ["short issue", "..."],
+  "issues": ["short human-readable issue", "..."],
+  "issues_detailed": [
+    {{
+      "type": "missing_in_image|extra_in_image|wrong_state|wrong_count|wrong_attribute|wrong_context",
+      "prompt_item": "<thing mentioned in prompt (or empty)>",
+      "image_evidence": "<what is visible>",
+      "fix": "<what to change in prompt>",
+      "confidence": 0.0
+    }}
+  ],
   "revised_prompt": "..."
 }}
 Current prompt:
