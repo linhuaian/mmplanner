@@ -80,7 +80,11 @@ if __name__ == "__main__":
                         # Critique image vs prompt and optionally rewrite prompt for next version.
                         if critique_agent is not None and v < max_versions:
                             try:
-                                critique = critique_agent.critique_and_rewrite_prompt(image=img, current_prompt=cur_prompt)
+                                critique = critique_agent.critique_and_rewrite_prompt(
+                                    image=img,
+                                    current_prompt=cur_prompt,
+                                    task=task,
+                                )
                                 Path(f"{intermediate_output_folder}/step_{i}_{cand_idx}_v{v}_critique.json").write_text(
                                     json.dumps(critique, indent=2),
                                     encoding="utf-8",

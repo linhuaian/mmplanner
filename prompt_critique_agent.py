@@ -44,17 +44,46 @@ class ImagePromptCritiqueAgent:
         *,
         image: Image.Image,
         current_prompt: str,
-        max_words: int = 20,
+        task: str = "",
+        max_chars: int = 180,
     ) -> Dict[str, Any]:
         """
         Returns dict:
           {
             "ok": bool,                     # True if prompt already matches well enough
             "issues": ["..."],              # short list
-            "revised_prompt": "..."         # short, visual, noun-phrase-ish prompt
+            "revised_prompt": "..."         # short, continuous, task-grounded prompt
           }
         """
         data_url = self._image_to_data_url(image)
+
+        def _task_to_context(t: str) -> str:
+            t = (t or "").strip().strip().rstrip("?!.")
+            low = t.lower()
+            if low.startswith("how to "):
+                t = t[7:].strip()
+            words = t.split()
+            if not words:
+                return ""
+            verb = words[0]
+            rest = " ".join(words[1:]).strip()
+            vlow = verb.lower()
+            if vlow.endswith("e") and vlow not in {"see", "be"}:
+                gerund = verb[:-1] + "ing"
+            elif vlow.endswith("ie"):
+                gerund = verb[:-2] + "ying"
+            elif vlow == "run":
+                gerund = verb + "ning"
+            else:
+                gerund = verb + "ing"
+            phrase = (gerund + (" " + rest if rest else "")).strip()
+            if not phrase:
+                return ""
+            return phrase[0].upper() + phrase[1:]
+
+        context = _task_to_context(task)
+        # Force a consistent, continuous prompt style so SD doesn't receive a fragmented list.
+        style_prefix = f"{context} with " if context else ""
 
         prompt = f"""
 You are a strict image-prompt critic for a text-to-image model.
@@ -68,9 +97,10 @@ Task:
 2) If not OK, rewrite the prompt to better match what is ACTUALLY visible in the image.
 
 Rules for revised_prompt:
-- MUST be short (<= {max_words} words).
+- MUST be short (<= {max_chars} characters).
 - MUST describe only visible items/states (no camera/style words).
-- Prefer a compact comma-separated list of visual nouns/adjectives.
+- MUST be ONE continuous sentence (not a fragmented list).
+- MUST keep task context when provided by starting with: "{style_prefix}<visual objects/states>."
 
 Return JSON ONLY:
 {{
