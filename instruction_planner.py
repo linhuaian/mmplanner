@@ -26,26 +26,25 @@ def _join_natural(items: list[str]) -> str:
     return ", ".join(items[:-1]) + f", and {items[-1]}"
 
 
-def _compose_sd_prompt(step_text: str, object_phrases: list[str], *, max_chars: int = 220) -> str:
+def _compose_sd_prompt(step_text: str, object_phrases: list[str], *, max_chars: int = 160) -> str:
     """
-    Turn fragmented object-state phrases into one SHORT, continuous SD-friendly prompt.
+    Turn object-state phrases into one SHORT, continuous, purely-visual SD prompt.
     Deterministic (no extra LLM call), broadly applicable, and length-capped for SD.
     """
-    step = (step_text or "").strip()
-    # Remove leading numbering like "1." if present.
-    if step[:3].strip().endswith(".") and step[:2].strip(" .").isdigit():
-        step = step.split(".", 1)[-1].strip()
-    step = step.rstrip(".")
-
     objs = [_strip_leading_article(p) for p in (object_phrases or [])]
     objs = [o for o in objs if o]
-    objs_clause = _join_natural(objs[:5])  # keep it tight
+    objs_clause = _join_natural(objs[:4])  # keep it tight
 
-    # Single sentence, compact style.
+    # Short, sweet, and ONLY what can be seen in one image (no action narration, no camera/style terms).
     if objs_clause:
-        prompt = f"Photorealistic photo: {step}, with {objs_clause}. Natural light, sharp focus."
+        prompt = objs_clause
     else:
-        prompt = f"Photorealistic photo: {step}. Natural light, sharp focus."
+        # If no phrases, fall back to a minimal visual framing of the step.
+        step = (step_text or "").strip()
+        if step[:3].strip().endswith(".") and step[:2].strip(" .").isdigit():
+            step = step.split(".", 1)[-1].strip()
+        step = step.rstrip(".")
+        prompt = step
 
     prompt = " ".join(prompt.split())  # normalize whitespace
     if len(prompt) <= max_chars:
@@ -192,7 +191,7 @@ class InstructionPlanner:
 
 if __name__ == "__main__":
     ip = InstructionPlanner(COMPASS_API_KEY)
-    plan = ip.generate_text_plan("How to cook a fried egg?")
+    plan = ip.generate_text_plan("How to cook a fried egg?", output_folder="./output/how_to_cook_a_fried_egg")
     print(plan)
 
 # 2. Generate Image Plan

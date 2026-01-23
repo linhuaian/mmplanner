@@ -361,11 +361,8 @@ class TextObjectStateAgent:
     def __init__(self, api_key: Optional[str] = None, model: str = DEFAULT_VISION_MODEL):
         self.api_key = api_key or COMPASS_API_KEY
         self.model = model
-        # Split responsibilities into two sub-agents:
-        # - suggestion/extraction
-        # - critique/revision
+        # Single-pass extraction agent (no critique/revision phase).
         self.suggester = StepSuggestionAgent(api_key=self.api_key, model=self.model)
-        self.critic = StepCritiqueAgent(api_key=self.api_key, model=self.model)
         self.memory: Dict[str, Any] = {"by_step": {}, "trace_by_step": {}}
 
     def analyze_step_text(
@@ -382,7 +379,7 @@ class TextObjectStateAgent:
     ) -> StepState:
         """
         Produce expected object/state phrases purely from step text (no image).
-        Implements a feedback loop: Extract -> Critique/Revise (multi-round).
+        Single-pass extract only (SuggestionAgent). Critique/revision has been removed.
         """
         expected_states = expected_states or {}
         prev = self.memory["by_step"].get(step_index - 1)
@@ -406,51 +403,20 @@ class TextObjectStateAgent:
             _safe_print("\n--- SuggestionAgent output ---")
             _safe_print(json.dumps({"phrases": phrases_1, "objects": objects_1, "notes": notes_1}, indent=2))
 
-        # ---- Pass 2+: Critique + Revise for consistency/persistence (repeat >=3 rounds) ----
-        critique_rounds = int(critique_rounds or 0)
-        if critique_rounds < 3:
-            critique_rounds = 3
-
-        cur_phrases, cur_objects, cur_notes = phrases_1, objects_1, notes_1
-
-        for r in range(critique_rounds):
-            try:
-                cur_phrases, cur_objects, cur_notes = self.critic.critique(
-                    task=task,
-                    step_index=step_index,
-                    step_text=step_text,
-                    expected_states=expected_states,
-                    prev_phrases=prev_phrases,
-                    prev_objects=prev_objects,
-                    cur_phrases=cur_phrases,
-                    cur_objects=cur_objects,
-                    cur_notes=cur_notes,
-                    num_phrases=num_phrases,
-                    round_index=r + 1,
-                    total_rounds=critique_rounds,
-                    trace_events=trace_events,
+        # Backwards-compat note: callers may still pass critique_rounds; we ignore it.
+        if critique_rounds and int(critique_rounds) > 0:
+            notes_1 = (notes_1 + " | critique_disabled").strip()
+            if trace_events is not None:
+                trace_events.append(
+                    {
+                        "stage": "info",
+                        "step_index": step_index,
+                        "note": "critique_disabled",
+                        "critique_rounds_ignored": int(critique_rounds),
+                    }
                 )
-                if verbose:
-                    _safe_print(f"\n--- CritiqueAgent output (round {r+1}/{critique_rounds}) ---")
-                    _safe_print(json.dumps({"phrases": cur_phrases, "objects": cur_objects, "notes": cur_notes}, indent=2))
-            except Exception as e:
-                # If critique fails, keep the latest and annotate.
-                cur_notes = (cur_notes + f" | critique_round_{r+1}_failed: {type(e).__name__}").strip()
-                if verbose:
-                    _safe_print(f"\n--- CritiqueAgent failed (round {r+1}/{critique_rounds}): {type(e).__name__} ---")
-                if trace_events is not None:
-                    trace_events.append(
-                        {
-                            "stage": "critique",
-                            "step_index": step_index,
-                            "round": r + 1,
-                            "total_rounds": critique_rounds,
-                            "error": {"type": type(e).__name__, "message": str(e)},
-                        }
-                    )
-                break
 
-        step_state = StepState(step=step_index, phrases=cur_phrases, objects=cur_objects, notes=cur_notes)
+        step_state = StepState(step=step_index, phrases=phrases_1, objects=objects_1, notes=notes_1)
         self.memory["by_step"][step_index] = {
             "step": step_index,
             "phrases": step_state.phrases,
@@ -480,9 +446,7 @@ class TextObjectStateAgent:
 
         trace_by_step = self.memory.get("trace_by_step", {}) or {}
         if trace_by_step:
-            trace_by_step_str = {
-                str(k): (v if isinstance(v, list) else []) for k, v in trace_by_step.items()
-            }
+            trace_by_step_str = {str(k): (v if isinstance(v, list) else []) for k, v in trace_by_step.items()}
             (folder / "ground_truth_object_state_trace_text.json").write_text(
                 json.dumps({"source": "text", "by_step": trace_by_step_str}, indent=2),
                 encoding="utf-8",
