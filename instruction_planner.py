@@ -26,25 +26,67 @@ def _join_natural(items: list[str]) -> str:
     return ", ".join(items[:-1]) + f", and {items[-1]}"
 
 
-def _compose_sd_prompt(step_text: str, object_phrases: list[str], *, max_chars: int = 160) -> str:
+def _task_to_context(task: str) -> str:
     """
-    Turn object-state phrases into one SHORT, continuous, purely-visual SD prompt.
+    Convert an instruction like "how to build a PC?" into a short context phrase like "Building a PC".
+    Heuristic only; meant to add scene context for SD prompts.
+    """
+    t = (task or "").strip()
+    t = t.strip().rstrip("?!.")
+    low = t.lower()
+    if low.startswith("how to "):
+        t = t[7:].strip()
+    # Title-case acronyms like "pc" -> "PC" when original contains uppercase.
+    # Keep the remainder as-is to preserve casing like "PC".
+    words = t.split()
+    if not words:
+        return ""
+    verb = words[0]
+    rest = " ".join(words[1:]).strip()
+
+    # Very small set of English -ing conversions; fallback to "<verb>ing".
+    vlow = verb.lower()
+    if vlow.endswith("e") and vlow not in {"see", "be"}:
+        gerund = verb[:-1] + "ing"
+    elif vlow.endswith("ie"):
+        gerund = verb[:-2] + "ying"
+    elif vlow in {"run"}:
+        gerund = verb + "ning"
+    else:
+        gerund = verb + "ing"
+    phrase = (gerund + (" " + rest if rest else "")).strip()
+    if not phrase:
+        return ""
+    # Capitalize first letter for sentence start.
+    return phrase[0].upper() + phrase[1:]
+
+
+def _compose_sd_prompt(task: str, step_text: str, object_phrases: list[str], *, max_chars: int = 180) -> str:
+    """
+    Turn object-state phrases into one SHORT, continuous SD prompt with task context.
     Deterministic (no extra LLM call), broadly applicable, and length-capped for SD.
     """
+    context = _task_to_context(task)
     objs = [_strip_leading_article(p) for p in (object_phrases or [])]
     objs = [o for o in objs if o]
     objs_clause = _join_natural(objs[:4])  # keep it tight
 
-    # Short, sweet, and ONLY what can be seen in one image (no action narration, no camera/style terms).
+    # Short, sweet, task-grounded, and no camera/style terms.
     if objs_clause:
-        prompt = objs_clause
+        if context:
+            prompt = f"{context} with {objs_clause}."
+        else:
+            prompt = f"{objs_clause}."
     else:
-        # If no phrases, fall back to a minimal visual framing of the step.
+        # If no phrases, fall back to step text but still add task context.
         step = (step_text or "").strip()
         if step[:3].strip().endswith(".") and step[:2].strip(" .").isdigit():
             step = step.split(".", 1)[-1].strip()
         step = step.rstrip(".")
-        prompt = step
+        if context:
+            prompt = f"{context}: {step}."
+        else:
+            prompt = f"{step}."
 
     prompt = " ".join(prompt.split())  # normalize whitespace
     if len(prompt) <= max_chars:
@@ -168,10 +210,10 @@ class InstructionPlanner:
                 )
                 if step_state.phrases:
                     # Compose a single continuous SD prompt from the phrases.
-                    image_descriptions.append(_compose_sd_prompt(step_text, step_state.phrases))
+                    image_descriptions.append(_compose_sd_prompt(instruction, step_text, step_state.phrases))
                 else:
                     # Fallback: if no phrases, use the step text so SD still has something to render.
-                    image_descriptions.append(_compose_sd_prompt(step_text, []))
+                    image_descriptions.append(_compose_sd_prompt(instruction, step_text, []))
 
             state_agent.save_task_text(output_folder, num_phrases=5)
         except Exception as e:
