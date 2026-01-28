@@ -61,6 +61,18 @@ def _task_to_context(task: str) -> str:
     return phrase[0].upper() + phrase[1:]
 
 
+def _task_to_label(task: str) -> str:
+    """
+    Convert an instruction like "how to cook fried rice?" into a short label like "cook fried rice".
+    Used for step-scoped prefixes (to avoid a global caption effect like "Cooking fried rice: ...").
+    """
+    t = (task or "").strip().strip().rstrip("?!.")
+    low = t.lower()
+    if low.startswith("how to "):
+        t = t[7:].strip()
+    return " ".join(t.split())
+
+
 def _step_to_visual_action(step_text: str, *, max_chars: int = 80) -> str:
     """
     Convert a step instruction into a short visually-oriented clause (kept brief for SD prompts).
@@ -93,16 +105,24 @@ def _step_to_visual_action(step_text: str, *, max_chars: int = 80) -> str:
         if idx != -1:
             s = s[:idx].strip()
             break
+    # Avoid punctuation artifacts like "aromatics,,".
+    s = s.rstrip(",")
 
     if len(s) > max_chars:
         s = s[: max_chars - 1].rstrip(" ,;:-") + "…"
     return s
 
-def _compose_sd_prompt(task: str, step_text: str, object_phrases: list[str], *, max_chars: int = 180) -> str:
+def _compose_sd_prompt(task: str, step_index: int, step_text: str, object_phrases: list[str], *, max_chars: int = 190) -> str:
     """
-    Turn object-state phrases into one SHORT, continuous SD prompt with task context.
+    Turn object-state phrases into one SHORT, continuous SD prompt with step-scoped task context.
     Deterministic (no extra LLM call), broadly applicable, and length-capped for SD.
     """
+    label = _task_to_label(task)
+    prefix = f"Step {step_index + 1}"
+    if label:
+        prefix += f" ({label})"
+    prefix += ":"
+
     context = _task_to_context(task)
     action = _step_to_visual_action(step_text)
     objs = [_strip_leading_article(p) for p in (object_phrases or [])]
@@ -111,20 +131,18 @@ def _compose_sd_prompt(task: str, step_text: str, object_phrases: list[str], *, 
 
     # Short, sweet, task-grounded, and illustrative of the step (no camera/style terms).
     if objs_clause:
-        if context and action:
-            prompt = f"{context}: {action}, with {objs_clause}."
+        if action:
+            prompt = f"{prefix} {action}, with {objs_clause}."
         elif context:
-            prompt = f"{context} with {objs_clause}."
-        elif action:
-            prompt = f"{action}, with {objs_clause}."
+            prompt = f"{prefix} {context} with {objs_clause}."
         else:
-            prompt = f"{objs_clause}."
+            prompt = f"{prefix} {objs_clause}."
     else:
         # If no phrases, fall back to the short action clause but still add task context.
-        if context and action:
-            prompt = f"{context}: {action}."
+        if action:
+            prompt = f"{prefix} {action}."
         elif context:
-            prompt = f"{context}."
+            prompt = f"{prefix} {context}."
         else:
             prompt = f"{action}." if action else ""
 
@@ -250,10 +268,10 @@ class InstructionPlanner:
                 )
                 if step_state.phrases:
                     # Compose a single continuous SD prompt from the phrases.
-                    image_descriptions.append(_compose_sd_prompt(instruction, step_text, step_state.phrases))
+                    image_descriptions.append(_compose_sd_prompt(instruction, i, step_text, step_state.phrases))
                 else:
                     # Fallback: if no phrases, use the step text so SD still has something to render.
-                    image_descriptions.append(_compose_sd_prompt(instruction, step_text, []))
+                    image_descriptions.append(_compose_sd_prompt(instruction, i, step_text, []))
 
             state_agent.save_task_text(output_folder, num_phrases=5)
         except Exception as e:
