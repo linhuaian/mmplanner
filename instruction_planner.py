@@ -61,32 +61,72 @@ def _task_to_context(task: str) -> str:
     return phrase[0].upper() + phrase[1:]
 
 
+def _step_to_visual_action(step_text: str, *, max_chars: int = 80) -> str:
+    """
+    Convert a step instruction into a short visually-oriented clause (kept brief for SD prompts).
+    """
+    s = (step_text or "").strip()
+    # Remove leading numbering like "1."
+    if s[:3].strip().endswith(".") and s[:2].strip(" .").isdigit():
+        s = s.split(".", 1)[-1].strip()
+    s = s.rstrip(".")
+
+    # Remove parenthetical content to reduce long lists.
+    out: list[str] = []
+    depth = 0
+    for ch in s:
+        if ch == "(":
+            depth += 1
+            continue
+        if ch == ")":
+            depth = max(0, depth - 1)
+            continue
+        if depth == 0:
+            out.append(ch)
+    s = "".join(out)
+    s = " ".join(s.split()).strip()
+
+    # Prefer the first clause for a single-frame depiction.
+    low = s.lower()
+    for sep in ["; ", ". ", " then ", " and then ", " before ", " after "]:
+        idx = low.find(sep)
+        if idx != -1:
+            s = s[:idx].strip()
+            break
+
+    if len(s) > max_chars:
+        s = s[: max_chars - 1].rstrip(" ,;:-") + "…"
+    return s
+
 def _compose_sd_prompt(task: str, step_text: str, object_phrases: list[str], *, max_chars: int = 180) -> str:
     """
     Turn object-state phrases into one SHORT, continuous SD prompt with task context.
     Deterministic (no extra LLM call), broadly applicable, and length-capped for SD.
     """
     context = _task_to_context(task)
+    action = _step_to_visual_action(step_text)
     objs = [_strip_leading_article(p) for p in (object_phrases or [])]
     objs = [o for o in objs if o]
     objs_clause = _join_natural(objs[:4])  # keep it tight
 
-    # Short, sweet, task-grounded, and no camera/style terms.
+    # Short, sweet, task-grounded, and illustrative of the step (no camera/style terms).
     if objs_clause:
-        if context:
+        if context and action:
+            prompt = f"{context}: {action}, with {objs_clause}."
+        elif context:
             prompt = f"{context} with {objs_clause}."
+        elif action:
+            prompt = f"{action}, with {objs_clause}."
         else:
             prompt = f"{objs_clause}."
     else:
-        # If no phrases, fall back to step text but still add task context.
-        step = (step_text or "").strip()
-        if step[:3].strip().endswith(".") and step[:2].strip(" .").isdigit():
-            step = step.split(".", 1)[-1].strip()
-        step = step.rstrip(".")
-        if context:
-            prompt = f"{context}: {step}."
+        # If no phrases, fall back to the short action clause but still add task context.
+        if context and action:
+            prompt = f"{context}: {action}."
+        elif context:
+            prompt = f"{context}."
         else:
-            prompt = f"{step}."
+            prompt = f"{action}." if action else ""
 
     prompt = " ".join(prompt.split())  # normalize whitespace
     if len(prompt) <= max_chars:

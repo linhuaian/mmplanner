@@ -107,7 +107,7 @@ Task:
 
 Clarification:
 - "missing_in_image" means: the prompt mentions an item/state, but it is NOT present/visible in the image.
-  This is a GENERATION FAILURE. Do NOT remove the missing item from the revised prompt.W
+  This is a GENERATION FAILURE. Do NOT remove the missing item from the revised prompt.
   Instead, rewrite/strengthen the prompt to make the model include it (be more explicit, specify placement/visibility).
 - "extra_in_image" means: the image contains a salient item/state NOT mentioned in the prompt (worth adding),
   but only add it if it doesn't conflict with the intended prompt content.
