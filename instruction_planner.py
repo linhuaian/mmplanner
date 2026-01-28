@@ -108,8 +108,6 @@ def _step_to_visual_action(step_text: str, *, max_chars: int = 80) -> str:
     # Avoid punctuation artifacts like "aromatics,,".
     s = s.rstrip(",")
 
-    if len(s) > max_chars:
-        s = s[: max_chars - 1].rstrip(" ,;:-") + "…"
     return s
 
 def _compose_sd_prompt(task: str, step_index: int, step_text: str, object_phrases: list[str], *, max_chars: int = 190) -> str:
@@ -147,12 +145,7 @@ def _compose_sd_prompt(task: str, step_index: int, step_text: str, object_phrase
             prompt = f"{action}." if action else ""
 
     prompt = " ".join(prompt.split())  # normalize whitespace
-    if len(prompt) <= max_chars:
-        return prompt
-
-    # Trim gracefully to max_chars.
-    trimmed = prompt[: max_chars - 1].rstrip(" ,.;:-")
-    return trimmed + "…"
+    return prompt   
 
 
 class InstructionPlanner:
