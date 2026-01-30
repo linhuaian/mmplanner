@@ -7,12 +7,6 @@ from dotenv import load_dotenv
 load_dotenv() 
 COMPASS_API_KEY = os.getenv("COMPASS_API_KEY")
 
-def _strip_leading_article(s: str) -> str:
-    s = (s or "").strip()
-    for art in ("a ", "an ", "the "):
-        if s.lower().startswith(art):
-            return s[len(art):].strip()
-    return s
 
 
 def _join_natural(items: list[str]) -> str:
@@ -123,7 +117,7 @@ def _compose_sd_prompt(task: str, step_index: int, step_text: str, object_phrase
 
     context = _task_to_context(task)
     action = _step_to_visual_action(step_text)
-    objs = [_strip_leading_article(p) for p in (object_phrases or [])]
+    objs = [p for p in (object_phrases or [])]
     objs = [o for o in objs if o]
     objs_clause = _join_natural(objs[:4])  # keep it tight
 
@@ -175,7 +169,7 @@ class InstructionPlanner:
         For EACH step in the plan, follow this Chain of Thought process:
         1. **ANALYZE:** Identify the main action, the key subject(s) (e.g., egg, pan, spatula), and the resulting state of the subject after the action (e.g., "The egg is now cracked and frying").
         2. **VISUALIZE:** Formulate a single, creative, high-fidelity prompt that clearly describes the scene. Focus on lighting, composition (close-up/wide shot), and the visual state of the main objects to make the image photorealistic and engaging.
-        3. **OUTPUT:** Provide ONLY the final, detailed image description.
+        3. **OUTPUT:** Provide ONLY the final, detailed image description (No actions).
         
         **Constraint:** The final output MUST be a JSON list of strings, where each string is the image description for the corresponding step. Do not include any other text or reasoning in the final output.
 
